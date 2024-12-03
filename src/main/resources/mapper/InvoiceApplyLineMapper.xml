@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hand.demo.infra.mapper.InvoiceApplyLineMapper">
+
+
+    <sql id = "BaseSql">
+        tial.apply_line_id,
+        tial.apply_header_id,
+        tial.ATTRIBUTE1,
+        tial.ATTRIBUTE10,
+        tial.ATTRIBUTE11,
+        tial.ATTRIBUTE12,
+        tial.ATTRIBUTE13,
+        tial.ATTRIBUTE14,
+        tial.ATTRIBUTE15,
+        tial.ATTRIBUTE2,
+        tial.ATTRIBUTE3,
+        tial.ATTRIBUTE4,
+        tial.ATTRIBUTE5,
+        tial.ATTRIBUTE6,
+        tial.ATTRIBUTE7,
+        tial.ATTRIBUTE8,
+        tial.ATTRIBUTE9,
+        tial.content_name,
+        tial.exclude_tax_amount,
+        tial.invoice_name,
+        tial.quantity,
+        tial.remark,
+        tial.tax_amount,
+        tial.tax_classification_number,
+        tial.tax_rate,
+        tial.tenant_id,
+        tial.total_amount,
+        tial.unit_price,
+        tial.creation_date, 
+        tial.created_by, 
+        tial.last_updated_by, 
+        tial.last_update_date, 
+        tial.object_version_number
+    </sql>
+
+    <select id = "selectList" resultType = "com.hand.demo.domain.entity.InvoiceApplyLine">
+        select
+        <include refid = "BaseSql"/>
+        from todo_invoice_apply_line tial
+        <where>
+            <if test="applyLineId !=null">
+                and tial.apply_line_id = #{applyLineId,jdbcType = INTEGER}
+            </if>
+            <if test="applyHeaderId !=null">
+                and tial.apply_header_id = #{applyHeaderId,jdbcType = INTEGER}
+            </if>
+            <if test="attribute1 !=null">
+                and tial.ATTRIBUTE1 = #{attribute1,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute10 !=null">
+                and tial.ATTRIBUTE10 = #{attribute10,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute11 !=null">
+                and tial.ATTRIBUTE11 = #{attribute11,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute12 !=null">
+                and tial.ATTRIBUTE12 = #{attribute12,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute13 !=null">
+                and tial.ATTRIBUTE13 = #{attribute13,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute14 !=null">
+                and tial.ATTRIBUTE14 = #{attribute14,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute15 !=null">
+                and tial.ATTRIBUTE15 = #{attribute15,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute2 !=null">
+                and tial.ATTRIBUTE2 = #{attribute2,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute3 !=null">
+                and tial.ATTRIBUTE3 = #{attribute3,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute4 !=null">
+                and tial.ATTRIBUTE4 = #{attribute4,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute5 !=null">
+                and tial.ATTRIBUTE5 = #{attribute5,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute6 !=null">
+                and tial.ATTRIBUTE6 = #{attribute6,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute7 !=null">
+                and tial.ATTRIBUTE7 = #{attribute7,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute8 !=null">
+                and tial.ATTRIBUTE8 = #{attribute8,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute9 !=null">
+                and tial.ATTRIBUTE9 = #{attribute9,jdbcType = VARCHAR}
+            </if>
+            <if test="contentName !=null">
+                and tial.content_name = #{contentName,jdbcType = VARCHAR}
+            </if>
+            <if test="excludeTaxAmount !=null">
+                and tial.exclude_tax_amount = #{excludeTaxAmount,jdbcType = OTHER}
+            </if>
+            <if test="invoiceName !=null">
+                and tial.invoice_name = #{invoiceName,jdbcType = VARCHAR}
+            </if>
+            <if test="quantity !=null">
+                and tial.quantity = #{quantity,jdbcType = OTHER}
+            </if>
+            <if test="remark !=null">
+                and tial.remark = #{remark,jdbcType = OTHER}
+            </if>
+            <if test="taxAmount !=null">
+                and tial.tax_amount = #{taxAmount,jdbcType = OTHER}
+            </if>
+            <if test="taxClassificationNumber !=null">
+                and tial.tax_classification_number = #{taxClassificationNumber,jdbcType = VARCHAR}
+            </if>
+            <if test="taxRate !=null">
+                and tial.tax_rate = #{taxRate,jdbcType = OTHER}
+            </if>
+            <if test="tenantId !=null">
+                and tial.tenant_id = #{tenantId,jdbcType = INTEGER}
+            </if>
+            <if test="totalAmount !=null">
+                and tial.total_amount = #{totalAmount,jdbcType = OTHER}
+            </if>
+            <if test="unitPrice !=null">
+                and tial.unit_price = #{unitPrice,jdbcType = OTHER}
+            </if>
+        </where>
+    </select>
+</mapper>
+
