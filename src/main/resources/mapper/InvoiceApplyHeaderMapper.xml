@@ -47,98 +47,39 @@
         <include refid = "BaseSql"/>
         from todo_invoice_apply_header tiah
         <where>
-            <if test="applyHeaderId !=null">
-                and tiah.apply_header_id = #{applyHeaderId,jdbcType = INTEGER}
+            <!-- Handle del_flag logic -->
+            <if test="delFlag == null or delFlag == 0">
+                AND tiah.del_flag = 0
             </if>
-            <if test="applyHeaderNumber !=null">
-                and tiah.apply_header_number = #{applyHeaderNumber,jdbcType = VARCHAR}
+
+            <!-- Fuzzy search for applyStatus, invoiceType and invoiceColor-->
+            <if test="applyStatus != null and applyStatus != ''">
+                AND tiah.apply_status LIKE CONCAT('%', #{applyStatus}, '%')
             </if>
-            <if test="applyStatus !=null">
-                and tiah.apply_status = #{applyStatus,jdbcType = VARCHAR}
+            <if test="invoiceType != null and invoiceType != ''">
+                AND tiah.invoice_type LIKE CONCAT('%', #{invoiceType}, '%')
             </if>
-            <if test="attribute1 !=null">
-                and tiah.ATTRIBUTE1 = #{attribute1,jdbcType = VARCHAR}
+            <if test="invoiceColor != null and invoiceColor != ''">
+                AND tiah.invoice_color LIKE CONCAT('%', #{invoiceColor}, '%')
             </if>
-            <if test="attribute10 !=null">
-                and tiah.ATTRIBUTE10 = #{attribute10,jdbcType = VARCHAR}
+
+            <!-- Fuzzy search for applyHeaderNumber -->
+            <if test="applyHeaderNumber != null and applyHeaderNumber != ''">
+                AND tiah.apply_header_number LIKE CONCAT('%', #{applyHeaderNumber}, '%')
             </if>
-            <if test="attribute11 !=null">
-                and tiah.ATTRIBUTE11 = #{attribute11,jdbcType = VARCHAR}
+
+            <!-- Fuzzy search for billTo fields -->
+            <if test="billToAddress != null and billToAddress != ''">
+                AND tiah.bill_to_address LIKE CONCAT('%', #{billToAddress}, '%')
             </if>
-            <if test="attribute12 !=null">
-                and tiah.ATTRIBUTE12 = #{attribute12,jdbcType = VARCHAR}
+            <if test="billToEmail != null and billToEmail != ''">
+                AND tiah.bill_to_email LIKE CONCAT('%', #{billToEmail}, '%')
             </if>
-            <if test="attribute13 !=null">
-                and tiah.ATTRIBUTE13 = #{attribute13,jdbcType = VARCHAR}
+            <if test="billToPerson != null and billToPerson != ''">
+                AND tiah.bill_to_person LIKE CONCAT('%', #{billToPerson}, '%')
             </if>
-            <if test="attribute14 !=null">
-                and tiah.ATTRIBUTE14 = #{attribute14,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute15 !=null">
-                and tiah.ATTRIBUTE15 = #{attribute15,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute2 !=null">
-                and tiah.ATTRIBUTE2 = #{attribute2,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute3 !=null">
-                and tiah.ATTRIBUTE3 = #{attribute3,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute4 !=null">
-                and tiah.ATTRIBUTE4 = #{attribute4,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute5 !=null">
-                and tiah.ATTRIBUTE5 = #{attribute5,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute6 !=null">
-                and tiah.ATTRIBUTE6 = #{attribute6,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute7 !=null">
-                and tiah.ATTRIBUTE7 = #{attribute7,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute8 !=null">
-                and tiah.ATTRIBUTE8 = #{attribute8,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute9 !=null">
-                and tiah.ATTRIBUTE9 = #{attribute9,jdbcType = VARCHAR}
-            </if>
-            <if test="billToAddress !=null">
-                and tiah.bill_to_address = #{billToAddress,jdbcType = VARCHAR}
-            </if>
-            <if test="billToEmail !=null">
-                and tiah.bill_to_email = #{billToEmail,jdbcType = VARCHAR}
-            </if>
-            <if test="billToPerson !=null">
-                and tiah.bill_to_person = #{billToPerson,jdbcType = VARCHAR}
-            </if>
-            <if test="billToPhone !=null">
-                and tiah.bill_to_phone = #{billToPhone,jdbcType = VARCHAR}
-            </if>
-            <if test="delFlag !=null">
-                and tiah.del_flag = #{delFlag,jdbcType = INTEGER}
-            </if>
-            <if test="excludeTaxAmount !=null">
-                and tiah.exclude_tax_amount = #{excludeTaxAmount,jdbcType = OTHER}
-            </if>
-            <if test="invoiceColor !=null">
-                and tiah.invoice_color = #{invoiceColor,jdbcType = VARCHAR}
-            </if>
-            <if test="invoiceType !=null">
-                and tiah.invoice_type = #{invoiceType,jdbcType = VARCHAR}
-            </if>
-            <if test="remark !=null">
-                and tiah.remark = #{remark,jdbcType = OTHER}
-            </if>
-            <if test="submitTime !=null">
-                and tiah.submit_time = #{submitTime,jdbcType = TIMESTAMP}
-            </if>
-            <if test="taxAmount !=null">
-                and tiah.tax_amount = #{taxAmount,jdbcType = OTHER}
-            </if>
-            <if test="tenantId !=null">
-                and tiah.tenant_id = #{tenantId,jdbcType = INTEGER}
-            </if>
-            <if test="totalAmount !=null">
-                and tiah.total_amount = #{totalAmount,jdbcType = OTHER}
+            <if test="billToPhone != null and billToPhone != ''">
+                AND tiah.bill_to_phone LIKE CONCAT('%', #{billToPhone}, '%')
             </if>
         </where>
     </select>
