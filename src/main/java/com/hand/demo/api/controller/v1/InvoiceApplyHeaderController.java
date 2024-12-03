@@ -1,5 +1,6 @@
 package com.hand.demo.api.controller.v1;
 
+import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -7,6 +8,8 @@ import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
+import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
+import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.util.Results;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
@@ -47,6 +50,22 @@ public class InvoiceApplyHeaderController extends BaseController {
                                                                  direction = Sort.Direction.DESC)
                                                          PageRequest pageRequest) {
         Page<InvoiceApplyHeader> list = invoiceApplyHeaderService.selectList(pageRequest, invoiceApplyHeader);
+        return Results.success(list);
+    }
+
+    @ApiOperation(value = "List with Meaning")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @GetMapping("/meaning")
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
+    public ResponseEntity<Page<InvoiceApplyHeaderDTO>> listMeaning(InvoiceApplyHeader invoiceApplyHeader,
+                                                                   @PathVariable Long organizationId,
+                                                                   @ApiIgnore
+                                                                   @SortDefault(
+                                                                           value = InvoiceApplyHeader.FIELD_APPLY_HEADER_ID,
+                                                                           direction = Sort.Direction.DESC)
+                                                                   PageRequest pageRequest) {
+        Page<InvoiceApplyHeaderDTO> list =
+                invoiceApplyHeaderService.selectListWithMeaning(pageRequest, invoiceApplyHeader, organizationId);
         return Results.success(list);
     }
 

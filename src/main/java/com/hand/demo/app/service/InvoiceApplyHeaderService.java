@@ -1,5 +1,6 @@
 package com.hand.demo.app.service;
 
+import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
@@ -22,6 +23,17 @@ public interface InvoiceApplyHeaderService {
      * @return 返回值
      */
     Page<InvoiceApplyHeader> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeaders);
+
+    /**
+     * 查询数据
+     *
+     * @param pageRequest         分页参数
+     * @param invoiceApplyHeaders 查询条件
+     * @param organizationId Tenant id
+     * @return InvoiceApplyHeaderDTO Page
+     */
+    Page<InvoiceApplyHeaderDTO> selectListWithMeaning(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeaders,
+                                                      Long organizationId);
 
     /**
      * 保存数据
