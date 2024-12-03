@@ -4,13 +4,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-<!--        <groupId>com.hand.todo</groupId>-->
-<!--        <artifactId>demo-parent</artifactId>-->
-<!--        <version>0.0.1</version>-->
         <groupId>org.hzero</groupId>
         <artifactId>hzero-parent</artifactId>
         <version>1.11.0.RELEASE</version>
     </parent>
+
+    <!--        <groupId>org.hzero</groupId>-->
+    <!--        <artifactId>hzero-parent</artifactId>-->
+    <!--        <version>1.11.0.RELEASE</version>-->
+
     <groupId>com.hand.todo</groupId>
     <artifactId>hexam</artifactId>
     <version>1.0.0-snapshot</version>
@@ -32,10 +34,10 @@
         <!-- 依赖组件列表 -->
 
         <!-- 数据库驱动 -->
-            <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-            </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
 
         <!-- spring-boot -->
         <dependency>
@@ -60,15 +62,15 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
-            <!-- eureka discovery and choerodon config -->
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-            </dependency>
-            <dependency>
-                <groupId>org.hzero.starter</groupId>
-                <artifactId>hzero-starter-config-client</artifactId>
-            </dependency>
+        <!-- eureka discovery and choerodon config -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hzero.starter</groupId>
+            <artifactId>hzero-starter-config-client</artifactId>
+        </dependency>
 
         <!-- commons、tools -->
         <dependency>
@@ -105,52 +107,43 @@
             <artifactId>cglib-nodep</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.hzero.boot</groupId>
             <artifactId>hzero-boot-message</artifactId>
         </dependency>
-
         <dependency>
-            <groupId>org.hzero</groupId>
-            <artifactId>hzero-scheduler-saas</artifactId>
+            <groupId>org.hzero.boot</groupId>
+            <artifactId>hzero-boot-scheduler</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.hzero.boot</groupId>
             <artifactId>hzero-boot-file</artifactId>
         </dependency>
-        <!--        HZero Import Services-->
         <dependency>
             <groupId>org.hzero.boot</groupId>
             <artifactId>hzero-boot-import</artifactId>
         </dependency>
-        <!--        HZero Workflow Services-->
+        <dependency>
+            <groupId>org.hzero.boot</groupId>
+            <artifactId>hzero-boot-report</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.hzero.boot</groupId>
             <artifactId>hzero-boot-workflow</artifactId>
             <version>1.10.1.RELEASE</version>
         </dependency>
-        <!--        HZero Platform Services-->
         <dependency>
             <groupId>org.hzero.boot</groupId>
-            <artifactId>hzero-boot-platform</artifactId>
-            <version>1.10.1.RELEASE</version>
-        </dependency>
-        <!--        HZero Export Services-->
-        <dependency>
-            <groupId>org.hzero.starter</groupId>
-            <artifactId>hzero-starter-export</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.30</version> <!-- Use the latest version -->
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hzero.starter</groupId>
-            <artifactId>hzero-starter-redis</artifactId>
+            <artifactId>hzero-boot-interface</artifactId>
         </dependency>
     </dependencies>
 
