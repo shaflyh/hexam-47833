@@ -1,6 +1,7 @@
 package com.hand.demo.app.service.impl;
 
 import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
+import com.hand.demo.domain.entity.InvoiceApplyLine;
 import com.hand.demo.infra.constant.LovConst;
 import com.hand.demo.infra.mapper.InvoiceApplyHeaderDTOMapper;
 import io.choerodon.core.domain.Page;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -32,14 +34,14 @@ import java.util.stream.Collectors;
 @Service
 public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService {
     @Autowired
-    private InvoiceApplyHeaderRepository invoiceApplyHeaderRepository;
+    private InvoiceApplyHeaderRepository headerRepository;
 
     @Autowired
     private LovAdapter lovAdapter;
 
     @Override
     public Page<InvoiceApplyHeader> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeader) {
-        return PageHelper.doPageAndSort(pageRequest, () -> invoiceApplyHeaderRepository.selectList(invoiceApplyHeader));
+        return PageHelper.doPageAndSort(pageRequest, () -> headerRepository.selectList(invoiceApplyHeader));
     }
 
     @Override
@@ -48,7 +50,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
                                                              Long organizationId) {
         // Fetch paginated data
         Page<InvoiceApplyHeader> invoiceApplyHeaderPage = PageHelper.doPageAndSort(pageRequest,
-                () -> invoiceApplyHeaderRepository.selectList(invoiceApplyHeader));
+                () -> headerRepository.selectList(invoiceApplyHeader));
         // Transform entities to DTOs
         List<InvoiceApplyHeaderDTO> headerDTOList = new ArrayList<>();
         for (InvoiceApplyHeader invoice : invoiceApplyHeaderPage) {
@@ -84,6 +86,22 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
             }
         }
 
+        // Total amount calculation
+        for (InvoiceApplyHeader invHeader : invoiceApplyHeaders) {
+            InvoiceApplyHeaderDTO detailHeader = headerRepository.selectByPrimary(invHeader.getApplyHeaderId());
+            BigDecimal totalAmount = BigDecimal.ZERO;
+            BigDecimal totalExcludeTax = BigDecimal.ZERO;
+            BigDecimal totalTax = BigDecimal.ZERO;
+            for(InvoiceApplyLine line: detailHeader.getInvoiceApplyLineList()){
+                totalAmount = totalAmount.add(line.getTotalAmount());
+                totalExcludeTax = totalExcludeTax.add(line.getExcludeTaxAmount());
+                totalTax = totalTax.add(line.getTaxAmount());
+            }
+            invHeader.setTotalAmount(totalAmount);
+            invHeader.setTaxAmount(totalTax);
+            invHeader.setExcludeTaxAmount(totalExcludeTax);
+        }
+
         List<InvoiceApplyHeader> insertList =
                 invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderId() == null)
                         .collect(Collectors.toList());
@@ -97,19 +115,19 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
                     .map(InvoiceApplyHeader::getApplyHeaderId)
                     .collect(Collectors.toList());
 
-            List<Long> existingIds = invoiceApplyHeaderRepository.findExistingIds(updateIds);
+            List<Long> existingIds = headerRepository.findExistingIds(updateIds);
             for (Long id : updateIds) {
                 if (!existingIds.contains(id)) {
                     throw new CommonException("Record with ID " + id + " does not exist for update!");
                 }
             }
-            invoiceApplyHeaderRepository.batchUpdateByPrimaryKeySelective(updateList);
+            headerRepository.batchUpdateByPrimaryKeySelective(updateList);
         }
 
         // Insert new records
         if (!insertList.isEmpty()) {
             System.out.println("Insert record using header number");
-            invoiceApplyHeaderRepository.batchInsertSelective(insertList);
+            headerRepository.batchInsertSelective(insertList);
         }
     }
 }
