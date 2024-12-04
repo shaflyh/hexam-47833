@@ -113,7 +113,7 @@ public class InvoiceApplyLine extends AuditDomain {
 
     private BigDecimal quantity;
 
-    private Object remark;
+    private String remark;
 
     @ApiModelProperty(value = "total_amount * tax_rate")
     private BigDecimal taxAmount;

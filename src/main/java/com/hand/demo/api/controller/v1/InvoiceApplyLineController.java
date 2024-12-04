@@ -53,7 +53,7 @@ public class InvoiceApplyLineController extends BaseController {
     @ApiOperation(value = "明细")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{applyLineId}/detail")
-    public ResponseEntity<InvoiceApplyLine> detail(@PathVariable Long applyLineId) {
+    public ResponseEntity<InvoiceApplyLine> detail(@PathVariable Long organizationId, @PathVariable Long applyLineId) {
         InvoiceApplyLine invoiceApplyLine = invoiceApplyLineRepository.selectByPrimary(applyLineId);
         return Results.success(invoiceApplyLine);
     }
@@ -73,7 +73,8 @@ public class InvoiceApplyLineController extends BaseController {
     @ApiOperation(value = "删除")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
-    public ResponseEntity<?> remove(@RequestBody List<InvoiceApplyLine> invoiceApplyLines) {
+    public ResponseEntity<?> remove(@PathVariable Long organizationId,
+                                    @RequestBody List<InvoiceApplyLine> invoiceApplyLines) {
         SecurityTokenHelper.validToken(invoiceApplyLines);
         invoiceApplyLineRepository.batchDeleteByPrimaryKey(invoiceApplyLines);
         return Results.success();
