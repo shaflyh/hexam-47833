@@ -19,5 +19,13 @@ public interface InvoiceApplyHeaderMapper extends BaseMapper<InvoiceApplyHeader>
      * @return 返回值
      */
     List<InvoiceApplyHeader> selectList(InvoiceApplyHeader invoiceApplyHeader);
+
+    /**
+     * Query existing IDs
+     *
+     * @param ids List of IDs to check
+     * @return List of existing IDs
+     */
+    List<Long> findExistingIds(List<Long> ids);
 }
 

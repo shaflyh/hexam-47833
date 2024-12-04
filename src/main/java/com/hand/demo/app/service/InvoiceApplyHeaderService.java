@@ -40,7 +40,7 @@ public interface InvoiceApplyHeaderService {
      *
      * @param invoiceApplyHeaders 数据
      */
-    void saveData(List<InvoiceApplyHeader> invoiceApplyHeaders);
+    void saveData(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId);
 
 }
 

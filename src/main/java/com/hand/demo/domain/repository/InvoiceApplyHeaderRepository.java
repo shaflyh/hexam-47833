@@ -27,4 +27,6 @@ public interface InvoiceApplyHeaderRepository extends BaseRepository<InvoiceAppl
      * @return 返回值
      */
     InvoiceApplyHeader selectByPrimary(Long applyHeaderId);
+
+    List<Long> findExistingIds(List<Long> ids);
 }

@@ -1,6 +1,6 @@
 package com.hand.demo.api.dto;
 
-import com.hand.demo.infra.constant.AppLovConstants;
+import com.hand.demo.infra.constant.LovConst;
 import lombok.Getter;
 import lombok.Setter;
 import org.hzero.boot.platform.lov.annotation.LovValue;
@@ -18,12 +18,12 @@ public class InvoiceApplyHeaderDTO {
     private Long applyHeaderId;
     private Long tenantId;
     private String applyHeaderNumber;
-    @LovValue(lovCode = AppLovConstants.InvoiceHeader.INV_STATUS)
+    @LovValue(lovCode = LovConst.InvoiceHeader.INV_STATUS)
     private String applyStatus;
     private Date submitTime;
-    @LovValue(lovCode = AppLovConstants.InvoiceHeader.INV_COLOR)
+    @LovValue(lovCode = LovConst.InvoiceHeader.INV_COLOR)
     private String invoiceColor;
-    @LovValue(lovCode = AppLovConstants.InvoiceHeader.INV_TYPE)
+    @LovValue(lovCode = LovConst.InvoiceHeader.INV_TYPE)
     private String invoiceType;
     private String billToPerson;
     private String billToPhone;

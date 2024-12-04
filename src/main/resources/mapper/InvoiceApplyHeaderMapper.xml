@@ -83,5 +83,14 @@
             </if>
         </where>
     </select>
+
+    <select id="findExistingIds" parameterType="list" resultType="long">
+        SELECT apply_header_id
+        FROM todo_invoice_apply_header
+        WHERE apply_header_id IN
+        <foreach item="id" index="index" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
 </mapper>
 
