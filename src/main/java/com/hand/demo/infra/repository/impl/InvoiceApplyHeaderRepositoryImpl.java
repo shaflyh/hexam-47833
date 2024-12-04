@@ -51,9 +51,16 @@ public class InvoiceApplyHeaderRepositoryImpl extends BaseRepositoryImpl<Invoice
     @Override
     public List<Long> findExistingIds(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
-            return Collections.emptyList(); // Return an empty list if input is null or empty
+            return Collections.emptyList();
         }
         return invoiceApplyHeaderMapper.findExistingIds(ids);
+    }
+
+    @Override
+    public void batchDeleteById(List<InvoiceApplyHeader> invoiceApplyHeaders) {
+        for (InvoiceApplyHeader invoice : invoiceApplyHeaders) {
+            invoiceApplyHeaderMapper.deleteById(invoice.getApplyHeaderId());
+        }
     }
 }
 

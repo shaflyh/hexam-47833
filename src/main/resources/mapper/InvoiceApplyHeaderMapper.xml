@@ -92,5 +92,11 @@
             #{id}
         </foreach>
     </select>
+
+    <update id="deleteById" parameterType="java.lang.Long">
+        UPDATE todo_invoice_apply_header
+        SET del_flag = 1
+        WHERE apply_header_id = #{id}
+    </update>
 </mapper>
 

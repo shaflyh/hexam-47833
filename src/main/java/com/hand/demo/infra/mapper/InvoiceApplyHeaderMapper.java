@@ -27,5 +27,12 @@ public interface InvoiceApplyHeaderMapper extends BaseMapper<InvoiceApplyHeader>
      * @return List of existing IDs
      */
     List<Long> findExistingIds(List<Long> ids);
+
+    /**
+     * Delete invoice header by apply header id
+     *
+     * @param id Apply header id
+     */
+    void deleteById(Long id);
 }
 

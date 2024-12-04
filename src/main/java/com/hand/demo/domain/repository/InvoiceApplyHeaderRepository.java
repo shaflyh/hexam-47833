@@ -29,5 +29,18 @@ public interface InvoiceApplyHeaderRepository extends BaseRepository<InvoiceAppl
      */
     InvoiceApplyHeaderDTO selectByPrimary(Long applyHeaderId);
 
+    /**
+     * Check existing invoices id
+     *
+     * @param ids List id
+     * @return List id
+     */
     List<Long> findExistingIds(List<Long> ids);
+
+    /**
+     * Delete invoice header
+     *
+     * @param invoiceApplyHeaders invoice header list
+     */
+    void batchDeleteById(List<InvoiceApplyHeader> invoiceApplyHeaders);
 }

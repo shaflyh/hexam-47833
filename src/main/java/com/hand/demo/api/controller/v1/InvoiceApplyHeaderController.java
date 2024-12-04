@@ -74,12 +74,12 @@ public class InvoiceApplyHeaderController extends BaseController {
     @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     @GetMapping("/{applyHeaderId}/detail")
     public ResponseEntity<InvoiceApplyHeaderDTO> detail(@PathVariable Long applyHeaderId,
-                                                     @PathVariable Long organizationId) {
+                                                        @PathVariable Long organizationId) {
         InvoiceApplyHeaderDTO invoiceApplyHeader = invoiceApplyHeaderRepository.selectByPrimary(applyHeaderId);
         return Results.success(invoiceApplyHeader);
     }
 
-    @ApiOperation(value = "创建或更新")
+    @ApiOperation(value = "Create or Update")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvoiceApplyHeader>> save(@PathVariable Long organizationId,
@@ -91,12 +91,13 @@ public class InvoiceApplyHeaderController extends BaseController {
         return Results.success(invoiceApplyHeaders);
     }
 
-    @ApiOperation(value = "删除")
+    @ApiOperation(value = "Delete")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
-    public ResponseEntity<?> remove(@RequestBody List<InvoiceApplyHeader> invoiceApplyHeaders) {
+    public ResponseEntity<?> remove(@PathVariable Long organizationId,
+                                    @RequestBody List<InvoiceApplyHeader> invoiceApplyHeaders) {
         SecurityTokenHelper.validToken(invoiceApplyHeaders);
-        invoiceApplyHeaderRepository.batchDeleteByPrimaryKey(invoiceApplyHeaders);
+        invoiceApplyHeaderRepository.batchDeleteById(invoiceApplyHeaders);
         return Results.success();
     }
 
