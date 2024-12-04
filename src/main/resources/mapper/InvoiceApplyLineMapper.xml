@@ -130,5 +130,12 @@
             </if>
         </where>
     </select>
+
+    <select id="selectLinesByHeaderId" resultType="com.hand.demo.domain.entity.InvoiceApplyLine">
+        SELECT
+        <include refid = "BaseSql"/>
+        from todo_invoice_apply_line tial
+        WHERE tial.apply_header_id = #{applyHeaderId}
+    </select>
 </mapper>
 

@@ -1,5 +1,6 @@
 package com.hand.demo.api.dto;
 
+import com.hand.demo.domain.entity.InvoiceApplyLine;
 import com.hand.demo.infra.constant.LovConst;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,6 +8,7 @@ import org.hzero.boot.platform.lov.annotation.LovValue;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author muhammad.shafly@hand-global.com
@@ -44,4 +46,6 @@ public class InvoiceApplyHeaderDTO {
     private String applyStatusMeaning;
     private String invoiceColorMeaning;
     private String invoiceTypeMeaning;
+
+    private List<InvoiceApplyLine> invoiceApplyLineList;
 }

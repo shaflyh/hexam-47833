@@ -1,6 +1,9 @@
 package com.hand.demo.infra.repository.impl;
 
-import org.apache.commons.collections.CollectionUtils;
+import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
+import com.hand.demo.domain.entity.InvoiceApplyLine;
+import com.hand.demo.infra.mapper.InvoiceApplyHeaderDTOMapper;
+import com.hand.demo.infra.mapper.InvoiceApplyLineMapper;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
@@ -22,6 +25,8 @@ public class InvoiceApplyHeaderRepositoryImpl extends BaseRepositoryImpl<Invoice
         implements InvoiceApplyHeaderRepository {
     @Resource
     private InvoiceApplyHeaderMapper invoiceApplyHeaderMapper;
+    @Resource
+    private InvoiceApplyLineMapper invoiceApplyLineMapper;
 
     @Override
     public List<InvoiceApplyHeader> selectList(InvoiceApplyHeader invoiceApplyHeader) {
@@ -29,14 +34,18 @@ public class InvoiceApplyHeaderRepositoryImpl extends BaseRepositoryImpl<Invoice
     }
 
     @Override
-    public InvoiceApplyHeader selectByPrimary(Long applyHeaderId) {
+    public InvoiceApplyHeaderDTO selectByPrimary(Long applyHeaderId) {
         InvoiceApplyHeader invoiceApplyHeader = new InvoiceApplyHeader();
         invoiceApplyHeader.setApplyHeaderId(applyHeaderId);
         List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceApplyHeaderMapper.selectList(invoiceApplyHeader);
         if (invoiceApplyHeaders.size() == 0) {
             return null;
         }
-        return invoiceApplyHeaders.get(0);
+        InvoiceApplyHeaderDTO invoiceApplyHeaderDTO = InvoiceApplyHeaderDTOMapper.toDTO(invoiceApplyHeaders.get(0));
+        // Get the invoice lines into the invoice header detail
+        List<InvoiceApplyLine> invoiceApplyLines = invoiceApplyLineMapper.selectLinesByHeaderId(applyHeaderId);
+        invoiceApplyHeaderDTO.setInvoiceApplyLineList(invoiceApplyLines);
+        return invoiceApplyHeaderDTO;
     }
 
     @Override

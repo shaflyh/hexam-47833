@@ -55,8 +55,8 @@ public class InvoiceApplyHeaderController extends BaseController {
 
     @ApiOperation(value = "List with Meaning")
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @GetMapping("/meaning")
     @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
+    @GetMapping("/meaning")
     public ResponseEntity<Page<InvoiceApplyHeaderDTO>> listMeaning(InvoiceApplyHeader invoiceApplyHeader,
                                                                    @PathVariable Long organizationId,
                                                                    @ApiIgnore
@@ -69,11 +69,13 @@ public class InvoiceApplyHeaderController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "明细")
+    @ApiOperation(value = "Detail")
     @Permission(level = ResourceLevel.ORGANIZATION)
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     @GetMapping("/{applyHeaderId}/detail")
-    public ResponseEntity<InvoiceApplyHeader> detail(@PathVariable Long applyHeaderId) {
-        InvoiceApplyHeader invoiceApplyHeader = invoiceApplyHeaderRepository.selectByPrimary(applyHeaderId);
+    public ResponseEntity<InvoiceApplyHeaderDTO> detail(@PathVariable Long applyHeaderId,
+                                                     @PathVariable Long organizationId) {
+        InvoiceApplyHeaderDTO invoiceApplyHeader = invoiceApplyHeaderRepository.selectByPrimary(applyHeaderId);
         return Results.success(invoiceApplyHeader);
     }
 
