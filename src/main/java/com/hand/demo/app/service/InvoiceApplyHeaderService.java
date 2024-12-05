@@ -30,7 +30,7 @@ public interface InvoiceApplyHeaderService {
      *
      * @param pageRequest         分页参数
      * @param invoiceApplyHeaders 查询条件
-     * @param organizationId Tenant id
+     * @param organizationId      Tenant id
      * @return InvoiceApplyHeaderDTO Page
      */
     Page<InvoiceApplyHeaderDTO> selectListWithMeaning(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeaders,
@@ -49,5 +49,12 @@ public interface InvoiceApplyHeaderService {
      * @param invoiceApplyLines Invoice apply lines
      */
     void updateHeaderByInvoiceLines(List<InvoiceApplyLine> invoiceApplyLines);
+
+    /**
+     * Export invoice header data
+     *
+     * @param invoiceApplyHeader Invoice apply header
+     */
+    List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyHeader invoiceApplyHeader, Long organizationId);
 }
 

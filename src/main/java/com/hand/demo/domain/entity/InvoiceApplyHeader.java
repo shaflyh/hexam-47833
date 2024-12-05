@@ -124,7 +124,7 @@ public class InvoiceApplyHeader extends AuditDomain {
     @ApiModelProperty(value = "(need Value Set) P : Paper invoice E : E-invoice")
     private String invoiceType;
 
-    private Object remark;
+    private String remark;
 
     private Date submitTime;
 

@@ -12,6 +12,8 @@ import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
 import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.util.Results;
+import org.hzero.export.annotation.ExcelExport;
+import org.hzero.export.vo.ExportParam;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -44,8 +47,7 @@ public class InvoiceApplyHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvoiceApplyHeader>> list(InvoiceApplyHeader invoiceApplyHeader,
-                                                         @PathVariable Long organizationId,
-                                                         @ApiIgnore
+                                                         @PathVariable Long organizationId, @ApiIgnore
                                                          @SortDefault(value = InvoiceApplyHeader.FIELD_APPLY_HEADER_ID,
                                                                  direction = Sort.Direction.DESC)
                                                          PageRequest pageRequest) {
@@ -58,8 +60,7 @@ public class InvoiceApplyHeaderController extends BaseController {
     @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     @GetMapping("/meaning")
     public ResponseEntity<Page<InvoiceApplyHeaderDTO>> listMeaning(InvoiceApplyHeader invoiceApplyHeader,
-                                                                   @PathVariable Long organizationId,
-                                                                   @ApiIgnore
+                                                                   @PathVariable Long organizationId, @ApiIgnore
                                                                    @SortDefault(
                                                                            value = InvoiceApplyHeader.FIELD_APPLY_HEADER_ID,
                                                                            direction = Sort.Direction.DESC)
@@ -101,5 +102,15 @@ public class InvoiceApplyHeaderController extends BaseController {
         return Results.success();
     }
 
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @ApiOperation(value = "Export")
+    @GetMapping("/export")
+    @ExcelExport(value = InvoiceApplyHeaderDTO.class)
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
+    public ResponseEntity<List<InvoiceApplyHeaderDTO>> export(@PathVariable Long organizationId,
+                                                              InvoiceApplyHeader invoiceApplyHeader,
+                                                              ExportParam exportParam, HttpServletResponse response) {
+        return Results.success(invoiceApplyHeaderService.exportData(invoiceApplyHeader, organizationId));
+    }
 }
 

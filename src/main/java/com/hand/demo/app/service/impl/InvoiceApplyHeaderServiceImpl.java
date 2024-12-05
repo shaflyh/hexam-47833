@@ -92,6 +92,44 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         updateInvoiceHeader(headerList);
     }
 
+    @Override
+    public List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyHeader invoiceApplyHeader, Long organizationId) {
+        List<InvoiceApplyHeader> headerList = headerRepository.selectList(invoiceApplyHeader);
+
+        // Get list of value for invoice
+        List<LovValueDTO> invStatusList = lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_STATUS, organizationId);
+        List<LovValueDTO> invColorList = lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_COLOR, organizationId);
+        List<LovValueDTO> invTypeList = lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_TYPE, organizationId);
+
+        List<InvoiceApplyHeaderDTO> headerDTOList = new ArrayList<>();
+        for (InvoiceApplyHeader header : headerList) {
+            InvoiceApplyHeaderDTO dto = InvoiceApplyHeaderDTOMapper.toDTO(header);
+            // Set invoice apply status
+            for (LovValueDTO lovDto : invStatusList) {
+                if(dto.getApplyStatus().equals(lovDto.getValue())){
+                    dto.setApplyStatusMeaning(lovDto.getMeaning());
+                    break;
+                }
+            }
+            // Set invoice color
+            for (LovValueDTO lovDto : invColorList) {
+                if(dto.getInvoiceColor().equals(lovDto.getValue())){
+                    dto.setInvoiceColorMeaning(lovDto.getMeaning());
+                    break;
+                }
+            }
+            // Set invoice type
+            for (LovValueDTO lovDto : invTypeList) {
+                if(dto.getInvoiceType().equals(lovDto.getValue())){
+                    dto.setInvoiceTypeMeaning(lovDto.getMeaning());
+                    break;
+                }
+            }
+            headerDTOList.add(dto);
+        }
+        return headerDTOList;
+    }
+
     private void inputValidation(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId) {
         // apply_status, invoice_color, and invoice_type validation
         List<LovValueDTO> invStatusList = lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_STATUS, organizationId);
@@ -141,7 +179,6 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         if (!insertList.isEmpty()) {
             // Set invoice header name from Code Rule Builder
             for (InvoiceApplyHeader invHeader : insertList) {
-                CustomUserDetails userDetails = DetailsHelper.getUserDetails();
                 Map<String, String> codeBuilderMap = new HashMap<>();
                 String invoiceCode = codeRuleBuilder.generateCode(CodeRuleConst.INV_HEADER_NUMBER, codeBuilderMap);
                 invHeader.setApplyHeaderNumber(invoiceCode);

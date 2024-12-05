@@ -145,6 +145,11 @@
             <groupId>org.hzero.boot</groupId>
             <artifactId>hzero-boot-interface</artifactId>
         </dependency>
+        <!--        HZero Export Services-->
+        <dependency>
+            <groupId>org.hzero.starter</groupId>
+            <artifactId>hzero-starter-export</artifactId>
+        </dependency>
     </dependencies>
 
     <repositories>
