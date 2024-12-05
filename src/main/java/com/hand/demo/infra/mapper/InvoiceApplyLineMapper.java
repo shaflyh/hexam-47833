@@ -21,7 +21,7 @@ public interface InvoiceApplyLineMapper extends BaseMapper<InvoiceApplyLine> {
     List<InvoiceApplyLine> selectList(InvoiceApplyLine invoiceApplyLine);
 
     /**
-     *
+     * Select invoice line by header id
      *
      * @param applyHeaderId Invoice apply header id
      * @return List InvoiceApplyLine

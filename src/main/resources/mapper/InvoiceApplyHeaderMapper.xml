@@ -47,6 +47,9 @@
         <include refid = "BaseSql"/>
         from todo_invoice_apply_header tiah
         <where>
+            <if test="applyHeaderId !=null">
+                tiah.apply_header_id = #{applyHeaderId,jdbcType = INTEGER}
+            </if>
             <!-- Handle del_flag logic -->
             <if test="delFlag == null or delFlag == 0">
                 AND tiah.del_flag = 0
