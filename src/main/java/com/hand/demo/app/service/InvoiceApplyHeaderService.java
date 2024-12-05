@@ -40,6 +40,7 @@ public interface InvoiceApplyHeaderService {
      * Save and update invoice header
      *
      * @param invoiceApplyHeaders 数据
+     * @param organizationId      Tenant id
      */
     void saveData(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId);
 
@@ -56,5 +57,13 @@ public interface InvoiceApplyHeaderService {
      * @param invoiceApplyHeader Invoice apply header
      */
     List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyHeader invoiceApplyHeader, Long organizationId);
+
+    /**
+     * Save and update invoice header by import
+     *
+     * @param invoiceApplyHeaders Invoice apply header
+     * @param organizationId      Tenant id
+     */
+    void saveDataByImport(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId);
 }
 
