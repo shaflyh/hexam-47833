@@ -1,5 +1,6 @@
 package com.hand.demo.app.service.impl;
 
+import com.hand.demo.app.service.InvoiceApplyHeaderService;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 import com.hand.demo.infra.constant.ErrorCodeConst;
@@ -15,6 +16,7 @@ import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +34,9 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
     @Autowired
     private InvoiceApplyHeaderRepository headerRepository;
 
+    @Autowired
+    private InvoiceApplyHeaderService headerService;
+
     @Override
     public Page<InvoiceApplyLine> selectList(PageRequest pageRequest, InvoiceApplyLine invoiceApplyLine) {
         return PageHelper.doPageAndSort(pageRequest, () -> lineRepository.selectList(invoiceApplyLine));
@@ -43,11 +48,11 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
                 invoiceApplyLines.stream().filter(line -> line.getApplyLineId() == null).collect(Collectors.toList());
         List<InvoiceApplyLine> updateList =
                 invoiceApplyLines.stream().filter(line -> line.getApplyLineId() != null).collect(Collectors.toList());
-        updateInvoiceLine(updateList);
-        insertInvoiceLine(insertList);
+        updateInvoiceLines(updateList);
+        insertInvoiceLines(insertList);
     }
 
-    private void updateInvoiceLine(List<InvoiceApplyLine> updateList) {
+    private void updateInvoiceLines(List<InvoiceApplyLine> updateList) {
         if (!updateList.isEmpty()) {
             // Update invoice lines validation
             updateInvoiceLineValidation(updateList);
@@ -58,7 +63,7 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
         }
     }
 
-    private void insertInvoiceLine(List<InvoiceApplyLine> insertList) {
+    private void insertInvoiceLines(List<InvoiceApplyLine> insertList) {
         if (!insertList.isEmpty()) {
             // Invoice lines calculation
             List<InvoiceApplyLine> invoiceApplyLines = invoiceLineCalculation(insertList);

@@ -69,23 +69,30 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
 
     @Override
     public void saveData(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId) {
-        saveDataValidation(invoiceApplyHeaders, organizationId);
-
+        inputValidation(invoiceApplyHeaders, organizationId);
         List<InvoiceApplyHeader> insertList =
                 invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderId() == null)
                         .collect(Collectors.toList());
         List<InvoiceApplyHeader> updateList =
                 invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderId() != null)
                         .collect(Collectors.toList());
-
         // Validate and update existing records
         updateInvoiceHeader(updateList);
-
         // Insert new records
         insertInvoiceHeader(insertList);
     }
 
-    private void saveDataValidation(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId) {
+    @Override
+    public void updateHeaderByInvoiceLines(List<InvoiceApplyLine> invoiceApplyLines) {
+        List<InvoiceApplyHeader> headerList = new ArrayList<>();
+        for (InvoiceApplyLine line : invoiceApplyLines) {
+            InvoiceApplyHeader header = headerRepository.selectByPrimaryKey(line.getApplyHeaderId());
+            headerList.add(header);
+        }
+        updateInvoiceHeader(headerList);
+    }
+
+    private void inputValidation(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId) {
         // apply_status, invoice_color, and invoice_type validation
         List<LovValueDTO> invStatusList = lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_STATUS, organizationId);
         List<LovValueDTO> invColorList = lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_COLOR, organizationId);
@@ -125,22 +132,9 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
             return;
         }
         // Total amount calculation
-        for (InvoiceApplyHeader invHeader : updateList) {
-            InvoiceApplyHeaderDTO detailHeader = headerRepository.selectByPrimary(invHeader.getApplyHeaderId());
-            BigDecimal totalAmount = BigDecimal.ZERO;
-            BigDecimal totalExcludeTax = BigDecimal.ZERO;
-            BigDecimal totalTax = BigDecimal.ZERO;
-            for (InvoiceApplyLine line : detailHeader.getInvoiceApplyLineList()) {
-                totalAmount = totalAmount.add(line.getTotalAmount());
-                totalExcludeTax = totalExcludeTax.add(line.getExcludeTaxAmount());
-                totalTax = totalTax.add(line.getTaxAmount());
-            }
-            invHeader.setTotalAmount(totalAmount);
-            invHeader.setTaxAmount(totalTax);
-            invHeader.setExcludeTaxAmount(totalExcludeTax);
-        }
+        List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceHeaderCalculation(updateList);
         // Update invoice header
-        headerRepository.batchUpdateByPrimaryKeySelective(updateList);
+        headerRepository.batchUpdateByPrimaryKeySelective(invoiceApplyHeaders);
     }
 
     private void insertInvoiceHeader(List<InvoiceApplyHeader> insertList) {
@@ -155,6 +149,24 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
             // Insert new invoice header
             headerRepository.batchInsertSelective(insertList);
         }
+    }
+
+    public List<InvoiceApplyHeader> invoiceHeaderCalculation(List<InvoiceApplyHeader> invoiceApplyHeaders){
+        for (InvoiceApplyHeader invHeader : invoiceApplyHeaders) {
+            InvoiceApplyHeaderDTO detailHeader = headerRepository.selectByPrimary(invHeader.getApplyHeaderId());
+            BigDecimal totalAmount = BigDecimal.ZERO;
+            BigDecimal totalExcludeTax = BigDecimal.ZERO;
+            BigDecimal totalTax = BigDecimal.ZERO;
+            for (InvoiceApplyLine line : detailHeader.getInvoiceApplyLineList()) {
+                totalAmount = totalAmount.add(line.getTotalAmount());
+                totalExcludeTax = totalExcludeTax.add(line.getExcludeTaxAmount());
+                totalTax = totalTax.add(line.getTaxAmount());
+            }
+            invHeader.setTotalAmount(totalAmount);
+            invHeader.setTaxAmount(totalTax);
+            invHeader.setExcludeTaxAmount(totalExcludeTax);
+        }
+        return invoiceApplyHeaders;
     }
 }
 

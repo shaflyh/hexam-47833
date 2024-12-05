@@ -1,5 +1,6 @@
 package com.hand.demo.api.controller.v1;
 
+import com.hand.demo.app.service.InvoiceApplyHeaderService;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -18,6 +19,7 @@ import com.hand.demo.domain.entity.InvoiceApplyLine;
 import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,6 +38,9 @@ public class InvoiceApplyLineController extends BaseController {
 
     @Autowired
     private InvoiceApplyLineService invoiceApplyLineService;
+
+    @Autowired
+    private InvoiceApplyHeaderService invoiceApplyHeaderService;
 
     @ApiOperation(value = "列表")
     @Permission(level = ResourceLevel.ORGANIZATION)
@@ -58,7 +63,7 @@ public class InvoiceApplyLineController extends BaseController {
         return Results.success(invoiceApplyLine);
     }
 
-    @ApiOperation(value = "创建或更新")
+    @ApiOperation(value = "Create or Update")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvoiceApplyLine>> save(@PathVariable Long organizationId,
@@ -67,16 +72,22 @@ public class InvoiceApplyLineController extends BaseController {
         SecurityTokenHelper.validTokenIgnoreInsert(invoiceApplyLines);
         invoiceApplyLines.forEach(item -> item.setTenantId(organizationId));
         invoiceApplyLineService.saveData(invoiceApplyLines);
+        invoiceApplyHeaderService.updateHeaderByInvoiceLines(invoiceApplyLines);
         return Results.success(invoiceApplyLines);
     }
 
-    @ApiOperation(value = "删除")
+    @ApiOperation(value = "Delete")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@PathVariable Long organizationId,
                                     @RequestBody List<InvoiceApplyLine> invoiceApplyLines) {
         SecurityTokenHelper.validToken(invoiceApplyLines);
+        List<InvoiceApplyLine> fetchedInvoiceApplyLines = new ArrayList<>();
+        for (InvoiceApplyLine line : invoiceApplyLines) {
+            fetchedInvoiceApplyLines.add(invoiceApplyLineRepository.selectOne(line));
+        }
         invoiceApplyLineRepository.batchDeleteByPrimaryKey(invoiceApplyLines);
+        invoiceApplyHeaderService.updateHeaderByInvoiceLines(fetchedInvoiceApplyLines);
         return Results.success();
     }
 

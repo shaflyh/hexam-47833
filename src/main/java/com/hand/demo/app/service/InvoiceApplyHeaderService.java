@@ -1,6 +1,7 @@
 package com.hand.demo.app.service;
 
 import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
+import com.hand.demo.domain.entity.InvoiceApplyLine;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
@@ -36,11 +37,17 @@ public interface InvoiceApplyHeaderService {
                                                       Long organizationId);
 
     /**
-     * 保存数据
+     * Save and update invoice header
      *
      * @param invoiceApplyHeaders 数据
      */
     void saveData(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId);
 
+    /**
+     * Update Header By Invoice Lines
+     *
+     * @param invoiceApplyLines Invoice apply lines
+     */
+    void updateHeaderByInvoiceLines(List<InvoiceApplyLine> invoiceApplyLines);
 }
 
