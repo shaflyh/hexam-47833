@@ -20,15 +20,13 @@ import java.util.List;
 @ImportService(templateCode = ImportConst.INV_HEADER_TEMP_CODE, sheetName = ImportConst.INV_HEADER_SHEET_NAME)
 public class InvoiceHeaderImportService extends BatchImportHandler {
 
-    @Autowired
-    ObjectMapper objectMapper;
+    private final InvoiceApplyHeaderService headerService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    InvoiceApplyHeaderService headerService;
-
-    public InvoiceHeaderImportService(ObjectMapper objectMapper, InvoiceApplyHeaderService headerService) {
-        this.objectMapper = objectMapper;
+    public InvoiceHeaderImportService(InvoiceApplyHeaderService headerService, ObjectMapper objectMapper) {
         this.headerService = headerService;
+        this.objectMapper = objectMapper;
     }
 
     @Override

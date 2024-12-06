@@ -17,15 +17,16 @@ import java.util.Map;
 @JobHandler(HandlerConst.INV_HEADER_JOB_HANDLER)
 public class InvoiceHeaderJob implements IJobHandler {
 
+    private final InvoiceApplyHeaderService headerService;
+
     @Autowired
-    private InvoiceApplyHeaderService headerService;
+    public InvoiceHeaderJob(InvoiceApplyHeaderService headerService) {
+        this.headerService = headerService;
+    }
 
     @Override
     public ReturnT execute(Map<String, String> map, SchedulerTool tool) {
-        System.out.println(map.get("delFlag"));
-        System.out.println(map.get("applyStatus"));
-        System.out.println(map.get("invoiceColor"));
-        System.out.println(map.get("invoiceType"));
+        // Get parameter from scheduling task
         headerService.invoiceSchedulingTask(map.get("delFlag"), map.get("applyStatus"), map.get("invoiceColor"),
                 map.get("invoiceType"));
         return ReturnT.SUCCESS;

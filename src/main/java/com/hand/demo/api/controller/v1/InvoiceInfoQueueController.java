@@ -31,11 +31,15 @@ import java.util.List;
 @RequestMapping("/v1/{organizationId}/invoice-info-queues")
 public class InvoiceInfoQueueController extends BaseController {
 
-    @Autowired
-    private InvoiceInfoQueueRepository invoiceInfoQueueRepository;
+    private final InvoiceInfoQueueRepository invoiceInfoQueueRepository;
+    private final InvoiceInfoQueueService invoiceInfoQueueService;
 
     @Autowired
-    private InvoiceInfoQueueService invoiceInfoQueueService;
+    public InvoiceInfoQueueController(InvoiceInfoQueueRepository invoiceInfoQueueRepository,
+                                      InvoiceInfoQueueService invoiceInfoQueueService) {
+        this.invoiceInfoQueueRepository = invoiceInfoQueueRepository;
+        this.invoiceInfoQueueService = invoiceInfoQueueService;
+    }
 
     @ApiOperation(value = "Redis Message Queue Table列表")
     @Permission(level = ResourceLevel.ORGANIZATION)

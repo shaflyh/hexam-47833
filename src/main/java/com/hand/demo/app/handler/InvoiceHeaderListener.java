@@ -22,8 +22,12 @@ import java.util.List;
 @QueueHandler(HandlerConst.INV_HEADER_QUEUE_HANDLER)
 public class InvoiceHeaderListener implements IQueueHandler {
 
+    private final InvoiceInfoQueueService queueService;
+
     @Autowired
-    InvoiceInfoQueueService queueService;
+    public InvoiceHeaderListener(InvoiceInfoQueueService queueService) {
+        this.queueService = queueService;
+    }
 
     @Override
     public void process(String message) {

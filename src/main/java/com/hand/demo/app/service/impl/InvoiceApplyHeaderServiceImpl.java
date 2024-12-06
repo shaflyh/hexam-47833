@@ -12,14 +12,11 @@ import com.hand.demo.infra.mapper.InvoiceApplyHeaderDTOMapper;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.domain.PageInfo;
 import io.choerodon.core.exception.CommonException;
-import io.choerodon.core.oauth.CustomUserDetails;
-import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
-import org.hzero.core.redis.RedisHelper;
 import org.hzero.core.redis.RedisQueueHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvoiceApplyHeaderService;
@@ -30,7 +27,6 @@ import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -41,17 +37,20 @@ import java.util.stream.Collectors;
  */
 @Service
 public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService {
-    @Autowired
-    private InvoiceApplyHeaderRepository headerRepository;
+
+    private final InvoiceApplyHeaderRepository headerRepository;
+    private final LovAdapter lovAdapter;
+    private final CodeRuleBuilder codeRuleBuilder;
+    private final RedisQueueHelper redisQueueHelper;
 
     @Autowired
-    private LovAdapter lovAdapter;
-
-    @Autowired
-    private CodeRuleBuilder codeRuleBuilder;
-
-    @Autowired
-    private RedisQueueHelper redisQueueHelper;
+    public InvoiceApplyHeaderServiceImpl(InvoiceApplyHeaderRepository headerRepository, LovAdapter lovAdapter,
+                                         CodeRuleBuilder codeRuleBuilder, RedisQueueHelper redisQueueHelper) {
+        this.headerRepository = headerRepository;
+        this.lovAdapter = lovAdapter;
+        this.codeRuleBuilder = codeRuleBuilder;
+        this.redisQueueHelper = redisQueueHelper;
+    }
 
     @Override
     public Page<InvoiceApplyHeader> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeader) {

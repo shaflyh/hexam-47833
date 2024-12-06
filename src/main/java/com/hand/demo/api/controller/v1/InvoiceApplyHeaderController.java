@@ -37,11 +37,15 @@ import java.util.List;
 @RequestMapping("/v1/{organizationId}/invoice-apply-headers")
 public class InvoiceApplyHeaderController extends BaseController {
 
-    @Autowired
-    private InvoiceApplyHeaderRepository invoiceApplyHeaderRepository;
+    private final InvoiceApplyHeaderRepository invoiceApplyHeaderRepository;
+    private final InvoiceApplyHeaderService invoiceApplyHeaderService;
 
     @Autowired
-    private InvoiceApplyHeaderService invoiceApplyHeaderService;
+    public InvoiceApplyHeaderController(InvoiceApplyHeaderRepository invoiceApplyHeaderRepository,
+                                        InvoiceApplyHeaderService invoiceApplyHeaderService) {
+        this.invoiceApplyHeaderRepository = invoiceApplyHeaderRepository;
+        this.invoiceApplyHeaderService = invoiceApplyHeaderService;
+    }
 
     @ApiOperation(value = "列表")
     @Permission(level = ResourceLevel.ORGANIZATION)

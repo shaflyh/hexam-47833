@@ -19,12 +19,11 @@ import java.util.List;
  */
 @ImportService(templateCode = ImportConst.INV_LINE_TEMP_CODE, sheetName = ImportConst.INV_LINE_SHEET_NAME)
 public class InvoiceLineImportService extends BatchImportHandler {
-    @Autowired
-    ObjectMapper objectMapper;
+
+    private final InvoiceApplyLineService lineService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    InvoiceApplyLineService lineService;
-
     public InvoiceLineImportService(ObjectMapper objectMapper, InvoiceApplyLineService lineService) {
         this.objectMapper = objectMapper;
         this.lineService = lineService;

@@ -30,17 +30,20 @@ import java.util.stream.Collectors;
  */
 @Service
 public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
-    @Autowired
-    private InvoiceApplyLineRepository lineRepository;
+    private final InvoiceApplyLineRepository lineRepository;
+    private final InvoiceApplyHeaderRepository headerRepository;
+    private final InvoiceApplyHeaderService headerService;
+    private final InvoiceApplyLineMapper lineMapper;
 
     @Autowired
-    private InvoiceApplyHeaderRepository headerRepository;
-
-    @Autowired
-    private InvoiceApplyHeaderService headerService;
-
-    @Autowired
-    private InvoiceApplyLineMapper lineMapper;
+    public InvoiceApplyLineServiceImpl(InvoiceApplyLineRepository lineRepository,
+                                       InvoiceApplyHeaderRepository headerRepository,
+                                       InvoiceApplyHeaderService headerService, InvoiceApplyLineMapper lineMapper) {
+        this.lineRepository = lineRepository;
+        this.headerRepository = headerRepository;
+        this.headerService = headerService;
+        this.lineMapper = lineMapper;
+    }
 
     @Override
     public Page<InvoiceApplyLine> selectList(PageRequest pageRequest, InvoiceApplyLine invoiceApplyLine) {

@@ -20,8 +20,12 @@ import java.util.stream.Collectors;
  */
 @Service
 public class InvoiceInfoQueueServiceImpl implements InvoiceInfoQueueService {
+    private final InvoiceInfoQueueRepository invoiceInfoQueueRepository;
+
     @Autowired
-    private InvoiceInfoQueueRepository invoiceInfoQueueRepository;
+    public InvoiceInfoQueueServiceImpl(InvoiceInfoQueueRepository invoiceInfoQueueRepository) {
+        this.invoiceInfoQueueRepository = invoiceInfoQueueRepository;
+    }
 
     @Override
     public Page<InvoiceInfoQueue> selectList(PageRequest pageRequest, InvoiceInfoQueue invoiceInfoQueue) {

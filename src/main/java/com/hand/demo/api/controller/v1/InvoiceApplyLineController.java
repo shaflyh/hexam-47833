@@ -39,21 +39,24 @@ import java.util.List;
 @RequestMapping("/v1/{organizationId}/invoice-apply-lines")
 public class InvoiceApplyLineController extends BaseController {
 
-    @Autowired
-    private InvoiceApplyLineRepository invoiceApplyLineRepository;
+    private final InvoiceApplyLineRepository invoiceApplyLineRepository;
+    private final InvoiceApplyLineService invoiceApplyLineService;
+    private final InvoiceApplyHeaderService invoiceApplyHeaderService;
 
     @Autowired
-    private InvoiceApplyLineService invoiceApplyLineService;
-
-    @Autowired
-    private InvoiceApplyHeaderService invoiceApplyHeaderService;
+    public InvoiceApplyLineController(InvoiceApplyLineRepository invoiceApplyLineRepository,
+                                      InvoiceApplyLineService invoiceApplyLineService,
+                                      InvoiceApplyHeaderService invoiceApplyHeaderService) {
+        this.invoiceApplyLineRepository = invoiceApplyLineRepository;
+        this.invoiceApplyLineService = invoiceApplyLineService;
+        this.invoiceApplyHeaderService = invoiceApplyHeaderService;
+    }
 
     @ApiOperation(value = "列表")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvoiceApplyLine>> list(InvoiceApplyLine invoiceApplyLine,
-                                                       @PathVariable Long organizationId,
-                                                       @ApiIgnore
+                                                       @PathVariable Long organizationId, @ApiIgnore
                                                        @SortDefault(value = InvoiceApplyLine.FIELD_APPLY_LINE_ID,
                                                                direction = Sort.Direction.DESC)
                                                        PageRequest pageRequest) {
