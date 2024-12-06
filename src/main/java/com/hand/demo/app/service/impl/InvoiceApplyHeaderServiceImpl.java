@@ -61,16 +61,10 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     public Page<InvoiceApplyHeaderDTO> selectListWithMeaning(PageRequest pageRequest,
                                                              InvoiceApplyHeader invoiceApplyHeader,
                                                              Long organizationId) {
-        // Fetch paginated data
         Page<InvoiceApplyHeader> invoiceApplyHeaderPage =
                 PageHelper.doPageAndSort(pageRequest, () -> headerRepository.selectList(invoiceApplyHeader));
-        // Transform entities to DTOs
-        List<InvoiceApplyHeaderDTO> headerDTOList = new ArrayList<>();
-        for (InvoiceApplyHeader invoice : invoiceApplyHeaderPage) {
-            InvoiceApplyHeaderDTO dto = InvoiceApplyHeaderDTOMapper.toDTO(invoice);
-            headerDTOList.add(dto);
-        }
-        // Create PageInfo object from PageRequest
+        List<InvoiceApplyHeaderDTO> headerDTOList =
+                invoiceApplyHeaderPage.stream().map(InvoiceApplyHeaderDTOMapper::toDTO).collect(Collectors.toList());
         PageInfo pageInfo = new PageInfo(pageRequest.getPage(), pageRequest.getSize());
         return new Page<>(headerDTOList, pageInfo, invoiceApplyHeaderPage.getTotalElements());
     }
@@ -78,31 +72,18 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     @Override
     public void saveData(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId) {
         inputValidation(invoiceApplyHeaders, organizationId);
-        List<InvoiceApplyHeader> insertList =
-                invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderId() == null)
-                        .collect(Collectors.toList());
-        List<InvoiceApplyHeader> updateList =
-                invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderId() != null)
-                        .collect(Collectors.toList());
-        // Validate and update existing records
+        List<InvoiceApplyHeader> insertList = getNewInvoices(invoiceApplyHeaders);
+        List<InvoiceApplyHeader> updateList = getExistingInvoices(invoiceApplyHeaders);
         updateInvoiceHeader(updateList);
-        // Insert new records
         insertInvoiceHeader(insertList);
     }
 
     @Override
     public void saveDataByImport(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId) {
         inputValidation(invoiceApplyHeaders, organizationId);
-        // Check for invoice header number (instead of header id)
-        List<InvoiceApplyHeader> insertList =
-                invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderNumber() == null)
-                        .collect(Collectors.toList());
-        List<InvoiceApplyHeader> updateList =
-                invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderNumber() != null)
-                        .collect(Collectors.toList());
-        // Validate and update existing records
+        List<InvoiceApplyHeader> insertList = getNewInvoices(invoiceApplyHeaders);
+        List<InvoiceApplyHeader> updateList = getExistingInvoices(invoiceApplyHeaders);
         updateInvoiceByImport(updateList);
-        // Insert new records
         insertInvoiceHeader(insertList);
     }
 
@@ -149,38 +130,33 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     public List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyHeader invoiceApplyHeader, Long organizationId) {
         List<InvoiceApplyHeader> headerList = headerRepository.selectList(invoiceApplyHeader);
 
-        // Get list of value for invoice
-        List<LovValueDTO> invStatusList = lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_STATUS, organizationId);
-        List<LovValueDTO> invColorList = lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_COLOR, organizationId);
-        List<LovValueDTO> invTypeList = lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_TYPE, organizationId);
+        Map<String, String> invStatusMap =
+                lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_STATUS, organizationId).stream()
+                        .collect(Collectors.toMap(LovValueDTO::getValue, LovValueDTO::getMeaning));
+        Map<String, String> invColorMap =
+                lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_COLOR, organizationId).stream()
+                        .collect(Collectors.toMap(LovValueDTO::getValue, LovValueDTO::getMeaning));
+        Map<String, String> invTypeMap =
+                lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_TYPE, organizationId).stream()
+                        .collect(Collectors.toMap(LovValueDTO::getValue, LovValueDTO::getMeaning));
 
-        List<InvoiceApplyHeaderDTO> headerDTOList = new ArrayList<>();
-        for (InvoiceApplyHeader header : headerList) {
+        return headerList.stream().map(header -> {
             InvoiceApplyHeaderDTO dto = InvoiceApplyHeaderDTOMapper.toDTO(header);
-            // Set invoice apply status
-            for (LovValueDTO lovDto : invStatusList) {
-                if (dto.getApplyStatus().equals(lovDto.getValue())) {
-                    dto.setApplyStatusMeaning(lovDto.getMeaning());
-                    break;
-                }
-            }
-            // Set invoice color
-            for (LovValueDTO lovDto : invColorList) {
-                if (dto.getInvoiceColor().equals(lovDto.getValue())) {
-                    dto.setInvoiceColorMeaning(lovDto.getMeaning());
-                    break;
-                }
-            }
-            // Set invoice type
-            for (LovValueDTO lovDto : invTypeList) {
-                if (dto.getInvoiceType().equals(lovDto.getValue())) {
-                    dto.setInvoiceTypeMeaning(lovDto.getMeaning());
-                    break;
-                }
-            }
-            headerDTOList.add(dto);
-        }
-        return headerDTOList;
+            dto.setApplyStatusMeaning(invStatusMap.get(dto.getApplyStatus()));
+            dto.setInvoiceColorMeaning(invColorMap.get(dto.getInvoiceColor()));
+            dto.setInvoiceTypeMeaning(invTypeMap.get(dto.getInvoiceType()));
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    private List<InvoiceApplyHeader> getNewInvoices(List<InvoiceApplyHeader> invoiceApplyHeaders) {
+        return invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderId() == null)
+                .collect(Collectors.toList());
+    }
+
+    private List<InvoiceApplyHeader> getExistingInvoices(List<InvoiceApplyHeader> invoiceApplyHeaders) {
+        return invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderId() != null)
+                .collect(Collectors.toList());
     }
 
     private void inputValidation(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId) {
