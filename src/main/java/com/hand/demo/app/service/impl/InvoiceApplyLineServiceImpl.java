@@ -1,9 +1,11 @@
 package com.hand.demo.app.service.impl;
 
+import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import com.hand.demo.app.service.InvoiceApplyHeaderService;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 import com.hand.demo.infra.constant.ErrorCodeConst;
+import com.hand.demo.infra.mapper.InvoiceApplyLineMapper;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.exception.CommonException;
 import io.choerodon.mybatis.pagehelper.PageHelper;
@@ -16,7 +18,6 @@ import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,9 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
 
     @Autowired
     private InvoiceApplyHeaderService headerService;
+
+    @Autowired
+    private InvoiceApplyLineMapper lineMapper;
 
     @Override
     public Page<InvoiceApplyLine> selectList(PageRequest pageRequest, InvoiceApplyLine invoiceApplyLine) {
@@ -104,6 +108,18 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
             line.setExcludeTaxAmount(excludeTaxAmount);
         }
         return invoiceApplyLines;
+    }
+
+    @Override
+    public List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyLine invoiceApplyLine, Long organizationId) {
+        // Get the Invoice Apply Header DTO
+        List<InvoiceApplyHeaderDTO> headerDTOList = headerService.exportData(new InvoiceApplyHeader(), organizationId);
+        // Set Invoice Line List for each Invoice Header
+        for (InvoiceApplyHeaderDTO dto : headerDTOList) {
+            List<InvoiceApplyLine> invoiceApplyLines = lineMapper.selectLinesByHeaderId(dto.getApplyHeaderId());
+            dto.setInvoiceApplyLineList(invoiceApplyLines);
+        }
+        return headerDTOList;
     }
 }
 

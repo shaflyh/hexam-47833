@@ -1,5 +1,6 @@
 package com.hand.demo.api.controller.v1;
 
+import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import com.hand.demo.app.service.InvoiceApplyHeaderService;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
@@ -8,8 +9,12 @@ import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
+import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
+import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.util.Results;
+import org.hzero.export.annotation.ExcelExport;
+import org.hzero.export.vo.ExportParam;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +24,7 @@ import com.hand.demo.domain.entity.InvoiceApplyLine;
 import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -89,6 +95,17 @@ public class InvoiceApplyLineController extends BaseController {
         invoiceApplyLineRepository.batchDeleteByPrimaryKey(invoiceApplyLines);
         invoiceApplyHeaderService.updateHeaderByInvoiceLines(fetchedInvoiceApplyLines);
         return Results.success();
+    }
+
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @ApiOperation(value = "Export")
+    @GetMapping("/export")
+    @ExcelExport(value = InvoiceApplyHeaderDTO.class)
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
+    public ResponseEntity<List<InvoiceApplyHeaderDTO>> export(@PathVariable Long organizationId,
+                                                              InvoiceApplyLine invoiceApplyLine,
+                                                              ExportParam exportParam, HttpServletResponse response) {
+        return Results.success(invoiceApplyLineService.exportData(invoiceApplyLine, organizationId));
     }
 
 }

@@ -19,6 +19,8 @@ import java.util.Date;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hzero.export.annotation.ExcelColumn;
+import org.hzero.export.annotation.ExcelSheet;
 
 /**
  * (InvoiceApplyLine)实体类
@@ -33,6 +35,7 @@ import lombok.Setter;
 @VersionAudit
 @ModifyAudit
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
+@ExcelSheet(en = "Invoice Apply Line")
 @Table(name = "todo_invoice_apply_line")
 public class InvoiceApplyLine extends AuditDomain {
     private static final long serialVersionUID = 480535924396602167L;
@@ -66,70 +69,68 @@ public class InvoiceApplyLine extends AuditDomain {
     public static final String FIELD_TOTAL_AMOUNT = "totalAmount";
     public static final String FIELD_UNIT_PRICE = "unitPrice";
 
-    @ApiModelProperty("PK")
+    @ApiModelProperty("Primary Key")
     @Id
     @GeneratedValue
+    @ExcelColumn(en = "Apply Line ID", order = 1)
     private Long applyLineId;
 
-    @ApiModelProperty(value = "header id")
+    @ApiModelProperty(value = "Header ID")
+    @ExcelColumn(en = "Apply Header ID", order = 2)
     private Long applyHeaderId;
 
-    private String attribute1;
-
-    private String attribute10;
-
-    private String attribute11;
-
-    private String attribute12;
-
-    private String attribute13;
-
-    private String attribute14;
-
-    private String attribute15;
-
-    private String attribute2;
-
-    private String attribute3;
-
-    private String attribute4;
-
-    private String attribute5;
-
-    private String attribute6;
-
-    private String attribute7;
-
-    private String attribute8;
-
-    private String attribute9;
-
+    @ExcelColumn(en = "Content Name", order = 3)
     private String contentName;
 
-    @ApiModelProperty(value = "total_amount - tax_amount")
+    @ApiModelProperty(value = "Total Amount - Tax Amount")
+    @ExcelColumn(en = "Exclude Tax Amount", order = 4)
     private BigDecimal excludeTaxAmount;
 
+    @ExcelColumn(en = "Invoice Name", order = 5)
     private String invoiceName;
 
+    @ExcelColumn(en = "Quantity", order = 6)
     private BigDecimal quantity;
 
+    @ExcelColumn(en = "Remark", order = 7)
     private String remark;
 
-    @ApiModelProperty(value = "total_amount * tax_rate")
+    @ApiModelProperty(value = "Total Amount * Tax Rate")
+    @ExcelColumn(en = "Tax Amount", order = 8)
     private BigDecimal taxAmount;
 
+    @ExcelColumn(en = "Tax Classification Number", order = 9)
     private String taxClassificationNumber;
 
-    @ApiModelProperty(value = "eg: 0.08")
+    @ApiModelProperty(value = "Tax Rate, e.g., 0.08")
+    @ExcelColumn(en = "Tax Rate", order = 10)
     private BigDecimal taxRate;
 
+    @ExcelColumn(en = "Tenant ID", order = 11)
     private Long tenantId;
 
-    @ApiModelProperty(value = "unit_price * quantity")
+    @ApiModelProperty(value = "Unit Price * Quantity")
+    @ExcelColumn(en = "Total Amount", order = 12)
     private BigDecimal totalAmount;
 
+    @ExcelColumn(en = "Unit Price", order = 13)
     private BigDecimal unitPrice;
 
-
+    // Attributes not displayed in the Excel sheet
+    private String attribute1;
+    private String attribute2;
+    private String attribute3;
+    private String attribute4;
+    private String attribute5;
+    private String attribute6;
+    private String attribute7;
+    private String attribute8;
+    private String attribute9;
+    private String attribute10;
+    private String attribute11;
+    private String attribute12;
+    private String attribute13;
+    private String attribute14;
+    private String attribute15;
 }
 
