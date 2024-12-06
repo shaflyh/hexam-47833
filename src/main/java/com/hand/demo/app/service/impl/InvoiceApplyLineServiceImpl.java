@@ -52,21 +52,25 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
 
     @Override
     public void saveData(List<InvoiceApplyLine> invoiceApplyLines) {
-        List<InvoiceApplyLine> insertList =
-                invoiceApplyLines.stream().filter(line -> line.getApplyLineId() == null).collect(Collectors.toList());
-        List<InvoiceApplyLine> updateList =
-                invoiceApplyLines.stream().filter(line -> line.getApplyLineId() != null).collect(Collectors.toList());
-        updateInvoiceLines(updateList);
-        insertInvoiceLines(insertList);
+        processSaveData(invoiceApplyLines, false, null);
     }
 
     @Override
     public void saveDataByImport(List<InvoiceApplyLine> invoiceApplyLines, Long organizationId) {
+        processSaveData(invoiceApplyLines, true, organizationId);
+    }
+
+    private void processSaveData(List<InvoiceApplyLine> invoiceApplyLines, boolean isImport, Long organizationId) {
         List<InvoiceApplyLine> insertList =
                 invoiceApplyLines.stream().filter(line -> line.getApplyLineId() == null).collect(Collectors.toList());
         List<InvoiceApplyLine> updateList =
                 invoiceApplyLines.stream().filter(line -> line.getApplyLineId() != null).collect(Collectors.toList());
-        updateInvoiceLinesByImport(updateList);
+
+        if (isImport) {
+            updateInvoiceLinesByImport(updateList);
+        } else {
+            updateInvoiceLines(updateList);
+        }
         insertInvoiceLines(insertList);
     }
 
