@@ -40,12 +40,17 @@ public class InvoiceApplyHeaderRepositoryImpl extends BaseRepositoryImpl<Invoice
         return invoiceApplyHeaderMapper.selectList(invoiceApplyHeader);
     }
 
+    /**
+     * Question 4:
+     * @return InvoiceApplyHeaderDTO with invoice meaning and invoice line list for selected header id
+     * Cache Invoice Header detail to Redis before return
+     */
     @Override
     public InvoiceApplyHeaderDTO selectByPrimary(Long applyHeaderId) {
         InvoiceApplyHeader invoiceApplyHeader = new InvoiceApplyHeader();
         invoiceApplyHeader.setApplyHeaderId(applyHeaderId);
         List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceApplyHeaderMapper.selectList(invoiceApplyHeader);
-        if (invoiceApplyHeaders.size() == 0) {
+        if (invoiceApplyHeaders.isEmpty()) {
             return null;
         }
         InvoiceApplyHeaderDTO headerDTO = InvoiceApplyHeaderDTOMapper.toDTO(invoiceApplyHeaders.get(0));
@@ -77,6 +82,11 @@ public class InvoiceApplyHeaderRepositoryImpl extends BaseRepositoryImpl<Invoice
         return invoiceApplyHeaderMapper.findExistingIds(ids);
     }
 
+    /**
+     * Question 6:
+     * Invoice Header Delete by updating the delete flag
+     * Create deleteById method in mapper to implement this
+     */
     @Override
     public void batchDeleteById(List<InvoiceApplyHeader> invoiceApplyHeaders) {
         for (InvoiceApplyHeader invoice : invoiceApplyHeaders) {

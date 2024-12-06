@@ -85,17 +85,25 @@ public class InvoiceApplyLineController extends BaseController {
         return Results.success(invoiceApplyLines);
     }
 
+    /**
+     * Question 8:
+     * Invoice Line Delete
+     * - Update the Invoice Header after delete
+     */
     @ApiOperation(value = "Delete")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@PathVariable Long organizationId,
                                     @RequestBody List<InvoiceApplyLine> invoiceApplyLines) {
         SecurityTokenHelper.validToken(invoiceApplyLines);
+        // Getting the Invoice Lines first before deleting the data (needed to get the the Invoice Header ID)
         List<InvoiceApplyLine> fetchedInvoiceApplyLines = new ArrayList<>();
         for (InvoiceApplyLine line : invoiceApplyLines) {
             fetchedInvoiceApplyLines.add(invoiceApplyLineRepository.selectOne(line));
         }
+        // Delete Invoice Line
         invoiceApplyLineRepository.batchDeleteByPrimaryKey(invoiceApplyLines);
+        // Update the total in Invoice Header by Invoice Line
         invoiceApplyHeaderService.updateHeaderByInvoiceLines(fetchedInvoiceApplyLines);
         return Results.success();
     }

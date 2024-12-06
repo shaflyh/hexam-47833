@@ -50,6 +50,14 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
         return PageHelper.doPageAndSort(pageRequest, () -> lineRepository.selectList(invoiceApplyLine));
     }
 
+    /**
+     * Question 7:
+     * Invoice Line save and update
+     * - updateInvoiceLines method for update
+     *    - updateInvoiceLineValidation() for update validation
+     *    - invoiceLineCalculation() for exclude_tax_amount, tax_amount, and total_amount calculation
+     * - insertInvoiceLines method for save
+     */
     @Override
     public void saveData(List<InvoiceApplyLine> invoiceApplyLines) {
         processSaveData(invoiceApplyLines, false, null);

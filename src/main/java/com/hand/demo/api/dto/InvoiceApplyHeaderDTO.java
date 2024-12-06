@@ -20,8 +20,6 @@ import java.util.List;
 @Setter
 @ExcelSheet(en = "Invoice Apply Header")
 public class InvoiceApplyHeaderDTO {
-    @ExcelColumn(promptCode = "children", promptKey = "children", child = true)
-    private List<InvoiceApplyLine> invoiceApplyLineList;
 
     @ExcelColumn(en = "Apply Header ID", order = 1)
     private Long applyHeaderId;
@@ -98,4 +96,6 @@ public class InvoiceApplyHeaderDTO {
     @ExcelColumn(en = "Last Update Date", order = 24)
     private Date lastUpdateDate;
 
+    @ExcelColumn(promptCode = "children", promptKey = "children", child = true)
+    private List<InvoiceApplyLine> invoiceApplyLineList;
 }
