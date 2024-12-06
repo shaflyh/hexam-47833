@@ -1,7 +1,6 @@
-package com.hand.demo.app.service.impl;
+package com.hand.demo.app.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hand.demo.app.service.InvoiceApplyHeaderService;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.infra.constant.Constants;
 import com.hand.demo.infra.constant.ImportConst;
@@ -18,9 +17,8 @@ import java.util.List;
  * @author muhammad.shafly@hand-global.com
  * @since 2024-12-05 14:47
  */
-
 @ImportService(templateCode = ImportConst.INV_HEADER_TEMP_CODE, sheetName = ImportConst.INV_HEADER_SHEET_NAME)
-public class ImportInvoiceHeaderServiceImpl extends BatchImportHandler {
+public class InvoiceHeaderImportService extends BatchImportHandler {
 
     @Autowired
     ObjectMapper objectMapper;
@@ -28,7 +26,7 @@ public class ImportInvoiceHeaderServiceImpl extends BatchImportHandler {
     @Autowired
     InvoiceApplyHeaderService headerService;
 
-    public ImportInvoiceHeaderServiceImpl(ObjectMapper objectMapper, InvoiceApplyHeaderService headerService) {
+    public InvoiceHeaderImportService(ObjectMapper objectMapper, InvoiceApplyHeaderService headerService) {
         this.objectMapper = objectMapper;
         this.headerService = headerService;
     }
@@ -37,9 +35,8 @@ public class ImportInvoiceHeaderServiceImpl extends BatchImportHandler {
     public Boolean doImport(List<String> data) {
         try {
             List<InvoiceApplyHeader> invoiceApplyHeaderList = new ArrayList<>();
-            for (String line : data) {
-                System.out.println(line);
-                InvoiceApplyHeader invoiceApplyHeader = objectMapper.readValue(line, InvoiceApplyHeader.class);
+            for (String header : data) {
+                InvoiceApplyHeader invoiceApplyHeader = objectMapper.readValue(header, InvoiceApplyHeader.class);
                 invoiceApplyHeader.setTenantId(Constants.ORGANIZATION_ID);
                 invoiceApplyHeaderList.add(invoiceApplyHeader);
             }

@@ -37,5 +37,13 @@ public interface InvoiceApplyLineService {
      * @param invoiceApplyLine Invoice Apply Line
      */
     List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyLine invoiceApplyLine, Long organizationId);
+
+    /**
+     * Save and update invoice header by import
+     *
+     * @param invoiceApplyLines   Invoice apply header
+     * @param organizationId      Tenant id
+     */
+    void saveDataByImport(List<InvoiceApplyLine> invoiceApplyLines, Long organizationId);
 }
 

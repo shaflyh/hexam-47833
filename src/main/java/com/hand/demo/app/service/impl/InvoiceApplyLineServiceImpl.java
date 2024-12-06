@@ -18,6 +18,7 @@ import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,6 +57,16 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
         insertInvoiceLines(insertList);
     }
 
+    @Override
+    public void saveDataByImport(List<InvoiceApplyLine> invoiceApplyLines, Long organizationId) {
+        List<InvoiceApplyLine> insertList =
+                invoiceApplyLines.stream().filter(line -> line.getApplyLineId() == null).collect(Collectors.toList());
+        List<InvoiceApplyLine> updateList =
+                invoiceApplyLines.stream().filter(line -> line.getApplyLineId() != null).collect(Collectors.toList());
+        updateInvoiceLinesByImport(updateList);
+        insertInvoiceLines(insertList);
+    }
+
     private void updateInvoiceLines(List<InvoiceApplyLine> updateList) {
         if (!updateList.isEmpty()) {
             // Update invoice lines validation
@@ -64,6 +75,39 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
             List<InvoiceApplyLine> invoiceApplyLines = invoiceLineCalculation(updateList);
             // Update invoice lines
             lineRepository.batchUpdateByPrimaryKeySelective(invoiceApplyLines);
+        }
+    }
+
+    private void updateInvoiceLinesByImport(List<InvoiceApplyLine> updateList) {
+        if (!updateList.isEmpty()) {
+            // Update invoice lines validation
+            updateInvoiceLineValidation(updateList);
+            List<InvoiceApplyLine> newInvoiceLines = new ArrayList<>();
+            for (InvoiceApplyLine line : updateList) {
+                // Check if invoice header apply number exist in database
+                InvoiceApplyLine newInvoiceLine = lineRepository.selectOne(new InvoiceApplyLine() {{
+                    setApplyLineId(line.getApplyLineId());
+                }});
+                if (newInvoiceLine == null) {
+                    throw new CommonException(ErrorCodeConst.INVOICE_NOT_EXIST, line.getApplyLineId());
+                }
+                // Update the new value
+                newInvoiceLine.setApplyHeaderId(line.getApplyHeaderId());
+                newInvoiceLine.setInvoiceName(line.getInvoiceName());
+                newInvoiceLine.setContentName(line.getContentName());
+                newInvoiceLine.setTaxClassificationNumber(line.getTaxClassificationNumber());
+                newInvoiceLine.setUnitPrice(line.getUnitPrice());
+                newInvoiceLine.setQuantity(line.getQuantity());
+                newInvoiceLine.setTaxRate(line.getTaxRate());
+                newInvoiceLine.setRemark(line.getRemark());
+                newInvoiceLines.add(newInvoiceLine);
+            }
+            // Invoice lines calculation
+            List<InvoiceApplyLine> calculatedInvoiceLines = invoiceLineCalculation(newInvoiceLines);
+            // Update the Invoice Lines
+            lineRepository.batchUpdateByPrimaryKeySelective(calculatedInvoiceLines);
+            // Update the Invoice Headers
+            headerService.updateHeaderByInvoiceLines(calculatedInvoiceLines);
         }
     }
 
