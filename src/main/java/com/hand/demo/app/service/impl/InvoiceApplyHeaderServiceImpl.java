@@ -1,8 +1,11 @@
 package com.hand.demo.app.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import com.hand.demo.domain.entity.InvoiceApplyLine;
 import com.hand.demo.infra.constant.CodeRuleConst;
+import com.hand.demo.infra.constant.Constants;
 import com.hand.demo.infra.constant.ErrorCodeConst;
 import com.hand.demo.infra.constant.LovConst;
 import com.hand.demo.infra.mapper.InvoiceApplyHeaderDTOMapper;
@@ -16,6 +19,8 @@ import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
+import org.hzero.core.redis.RedisHelper;
+import org.hzero.core.redis.RedisQueueHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvoiceApplyHeaderService;
 import org.springframework.stereotype.Service;
@@ -25,6 +30,7 @@ import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +49,9 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
 
     @Autowired
     private CodeRuleBuilder codeRuleBuilder;
+
+    @Autowired
+    private RedisQueueHelper redisQueueHelper;
 
     @Override
     public Page<InvoiceApplyHeader> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeader) {
@@ -96,6 +105,35 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         updateInvoiceByImport(updateList);
         // Insert new records
         insertInvoiceHeader(insertList);
+    }
+
+    /**
+     * Schedules task method to process invoice data and saves it to a Redis queue.
+     * Converts data from the database to JSON format and pushes it to the specified Redis key.
+     */
+    @Override
+    public void invoiceSchedulingTask(String delFlag, String applyStatus, String invoiceColor, String invoiceType) {
+        List<InvoiceApplyHeader> invoiceApplyHeaders = headerRepository.selectList(new InvoiceApplyHeader() {{
+            setDelFlag(Integer.parseInt(delFlag));
+            setApplyStatus(applyStatus);
+            setInvoiceColor(invoiceColor);
+            setInvoiceType(invoiceType);
+        }});
+        if (invoiceApplyHeaders.isEmpty()) {
+            System.out.println("InvoiceApplyHeaders is empty for scheduling task");
+            return;
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        // Convert each InvoiceApplyHeader to JSON string and collect into a List
+        try {
+            // Convert list to JSON string
+            String jsonString = objectMapper.writeValueAsString(invoiceApplyHeaders);
+            // Save to Redis Message Queue
+            String redisKey = "invoiceInfo_" + Constants.EMPLOYEE_ID;
+            redisQueueHelper.push(redisKey, jsonString);
+        } catch (JsonProcessingException e) {
+            throw new CommonException("Error converting list to JSON");
+        }
     }
 
     @Override

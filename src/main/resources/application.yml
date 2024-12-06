@@ -95,3 +95,9 @@ logging:
     org.apache.ibatis: debug
     io.choerodon: debug
     com.hand: debug
+hzero:
+  cache-value:
+    enable: true
+  redis:
+    redis-queue: true
+    queue-db: 1

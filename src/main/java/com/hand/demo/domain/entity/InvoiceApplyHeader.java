@@ -12,6 +12,7 @@ import lombok.Setter;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -29,7 +30,7 @@ import java.util.Date;
 @ModifyAudit
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "todo_invoice_apply_header")
-public class InvoiceApplyHeader extends AuditDomain {
+public class InvoiceApplyHeader extends AuditDomain implements Serializable {
     private static final long serialVersionUID = 406628452817312283L;
 
     public static final String FIELD_APPLY_HEADER_ID = "applyHeaderId";

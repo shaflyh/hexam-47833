@@ -65,5 +65,10 @@ public interface InvoiceApplyHeaderService {
      * @param organizationId      Tenant id
      */
     void saveDataByImport(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId);
+
+    /**
+     * Invoice Scheduling Task
+     */
+    void invoiceSchedulingTask(String delFlag, String applyStatus, String invoiceColor, String invoiceType);
 }
 

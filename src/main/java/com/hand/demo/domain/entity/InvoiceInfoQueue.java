@@ -45,7 +45,7 @@ public class InvoiceInfoQueue extends AuditDomain {
     private Long id;
 
     @ApiModelProperty(value = "Message Content")
-    private Object content;
+    private String content;
 
     @ApiModelProperty(value = "Employee Id", required = true)
     @NotBlank
