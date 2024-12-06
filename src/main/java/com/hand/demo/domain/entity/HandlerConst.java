@@ -1,7 +1,7 @@
 package com.hand.demo.domain.entity;
 
 /**
- * @author muhammad.shafly@hand-global.com
+ * @author Shafly - 47833
  * @since 2024-12-06 13:40
  */
 public class HandlerConst {

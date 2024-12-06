@@ -4,7 +4,7 @@ import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 
 /**
- * @author muhammad.shafly@hand-global.com
+ * @author Shafly - 47833
  * @since 2024-12-03 16:38
  */
 public class InvoiceApplyHeaderDTOMapper {

@@ -16,7 +16,7 @@ import java.util.List;
  * Redis Consumer for processing messages from the Redis queue.
  * Listens to messages on the HandlerConst.INV_HEADER_QUEUE_HANDLER queue and processes them.
  *
- * @author muhammad.shafly@hand-global.com
+ * @author Shafly - 47833
  * @since 2024-12-06 10:24
  */
 @QueueHandler(HandlerConst.INV_HEADER_QUEUE_HANDLER)

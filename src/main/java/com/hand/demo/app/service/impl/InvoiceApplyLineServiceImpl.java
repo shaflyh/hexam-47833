@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 /**
  * (InvoiceApplyLine)应用服务
  *
- * @author muhammad.shafly@hand-global.com
+ * @author Shafly - 47833
  * @since 2024-12-03 10:47:03
  */
 @Service

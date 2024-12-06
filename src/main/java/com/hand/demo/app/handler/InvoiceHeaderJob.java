@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Map;
 
 /**
- * @author muhammad.shafly@hand-global.com
+ * @author Shafly - 47833
  * @since 2024-12-06 09:42
  */
 @JobHandler(HandlerConst.INV_HEADER_JOB_HANDLER)

@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * (InvoiceApplyHeader)应用服务
  *
- * @author muhammad.shafly@hand-global.com
+ * @author Shafly - 47833
  * @since 2024-12-03 10:46:30
  */
 public interface InvoiceApplyHeaderMapper extends BaseMapper<InvoiceApplyHeader> {

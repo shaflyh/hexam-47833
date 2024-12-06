@@ -25,7 +25,7 @@ import org.hzero.export.annotation.ExcelSheet;
 /**
  * (InvoiceApplyLine)实体类
  *
- * @author muhammad.shafly@hand-global.com
+ * @author Shafly - 47833
  * @since 2024-12-03 10:47:02
  */
 

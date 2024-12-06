@@ -1,7 +1,7 @@
 package com.hand.demo.infra.constant;
 
 /**
- * @author muhammad.shafly@hand-global.com
+ * @author Shafly - 47833
  * @since 2024-12-03 19:35
  */
 public class LovConst {
