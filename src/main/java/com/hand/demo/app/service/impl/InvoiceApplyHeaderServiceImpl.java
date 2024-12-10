@@ -4,11 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import com.hand.demo.domain.entity.InvoiceApplyLine;
+import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
 import com.hand.demo.infra.constant.CodeRuleConst;
 import com.hand.demo.infra.constant.Constants;
 import com.hand.demo.infra.constant.ErrorCodeConst;
 import com.hand.demo.infra.constant.LovConst;
 import com.hand.demo.infra.mapper.InvoiceApplyHeaderDTOMapper;
+import com.hand.demo.infra.mapper.InvoiceApplyHeaderMapper;
+import com.hand.demo.infra.mapper.InvoiceApplyLineMapper;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.domain.PageInfo;
 import io.choerodon.core.exception.CommonException;
@@ -17,6 +20,7 @@ import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
+import org.hzero.core.redis.RedisHelper;
 import org.hzero.core.redis.RedisQueueHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvoiceApplyHeaderService;
@@ -27,6 +31,7 @@ import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -39,16 +44,28 @@ import java.util.stream.Collectors;
 public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService {
 
     private final InvoiceApplyHeaderRepository headerRepository;
+    private final InvoiceApplyHeaderMapper invoiceApplyHeaderMapper;
+    private final InvoiceApplyLineRepository lineRepository;
+    private final InvoiceApplyLineMapper invoiceApplyLineMapper;
     private final LovAdapter lovAdapter;
     private final CodeRuleBuilder codeRuleBuilder;
+    private final RedisHelper redisHelper;
     private final RedisQueueHelper redisQueueHelper;
 
     @Autowired
-    public InvoiceApplyHeaderServiceImpl(InvoiceApplyHeaderRepository headerRepository, LovAdapter lovAdapter,
-                                         CodeRuleBuilder codeRuleBuilder, RedisQueueHelper redisQueueHelper) {
+    public InvoiceApplyHeaderServiceImpl(InvoiceApplyHeaderRepository headerRepository,
+                                         InvoiceApplyHeaderMapper invoiceApplyHeaderMapper,
+                                         InvoiceApplyLineRepository lineRepository,
+                                         InvoiceApplyLineMapper invoiceApplyLineMapper, LovAdapter lovAdapter,
+                                         CodeRuleBuilder codeRuleBuilder, RedisHelper redisHelper,
+                                         RedisQueueHelper redisQueueHelper) {
         this.headerRepository = headerRepository;
+        this.invoiceApplyHeaderMapper = invoiceApplyHeaderMapper;
+        this.lineRepository = lineRepository;
+        this.invoiceApplyLineMapper = invoiceApplyLineMapper;
         this.lovAdapter = lovAdapter;
         this.codeRuleBuilder = codeRuleBuilder;
+        this.redisHelper = redisHelper;
         this.redisQueueHelper = redisQueueHelper;
     }
 
@@ -74,6 +91,41 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
                 invoiceApplyHeaderPage.stream().map(InvoiceApplyHeaderDTOMapper::toDTO).collect(Collectors.toList());
         PageInfo pageInfo = new PageInfo(pageRequest.getPage(), pageRequest.getSize());
         return new Page<>(headerDTOList, pageInfo, invoiceApplyHeaderPage.getTotalElements());
+    }
+
+    /**
+     * Question 4:
+     *
+     * @return InvoiceApplyHeaderDTO with the Invoice meanings and Invoice Line list for selected header id
+     * Cache Invoice Header detail to Redis before return
+     */
+    @Override
+    public InvoiceApplyHeaderDTO selectDetail(Long applyHeaderId) {
+        InvoiceApplyHeader invoiceApplyHeader = new InvoiceApplyHeader();
+        invoiceApplyHeader.setApplyHeaderId(applyHeaderId);
+        List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceApplyHeaderMapper.selectList(invoiceApplyHeader);
+        if (invoiceApplyHeaders.isEmpty()) {
+            return null;
+        }
+        InvoiceApplyHeaderDTO headerDTO = InvoiceApplyHeaderDTOMapper.toDTO(invoiceApplyHeaders.get(0));
+        // Get the invoice lines into the invoice header detail
+        List<InvoiceApplyLine> invoiceApplyLines = invoiceApplyLineMapper.selectLinesByHeaderId(applyHeaderId);
+        headerDTO.setInvoiceApplyLineList(invoiceApplyLines);
+        // Save invoice header detail in Redis
+        try {
+            // Serialize the DTO to JSON
+            ObjectMapper objectMapper = new ObjectMapper();
+            String dtoJson = objectMapper.writeValueAsString(headerDTO);
+            // Save to Redis
+            String redisKey = "hexam-47833:invoice-header:" + headerDTO.getApplyHeaderId();
+            redisHelper.hshPut(redisKey, String.valueOf(headerDTO.getApplyHeaderId()), dtoJson);
+            redisHelper.setExpire(redisKey, 10, TimeUnit.MINUTES);
+        } catch (JsonProcessingException e) {
+            throw new CommonException("Failed to serialize DTO: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new CommonException("Redis operation failed: " + e.getMessage(), e);
+        }
+        return headerDTO;
     }
 
     /**
@@ -143,6 +195,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     /**
      * Question 9:
      * Export Invoice Header
+     *
      * @return List InvoiceApplyHeaderDTO
      * Parse the meaning first before return from the value set
      */
@@ -152,13 +205,13 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         // Get meaning data from LoV adapter
         Map<String, String> invStatusMap =
                 lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_STATUS, organizationId).stream()
-                        .collect(Collectors.toMap(LovValueDTO::getValue, LovValueDTO::getMeaning));
+                          .collect(Collectors.toMap(LovValueDTO::getValue, LovValueDTO::getMeaning));
         Map<String, String> invColorMap =
                 lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_COLOR, organizationId).stream()
-                        .collect(Collectors.toMap(LovValueDTO::getValue, LovValueDTO::getMeaning));
+                          .collect(Collectors.toMap(LovValueDTO::getValue, LovValueDTO::getMeaning));
         Map<String, String> invTypeMap =
                 lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_TYPE, organizationId).stream()
-                        .collect(Collectors.toMap(LovValueDTO::getValue, LovValueDTO::getMeaning));
+                          .collect(Collectors.toMap(LovValueDTO::getValue, LovValueDTO::getMeaning));
         // Update meaning in DTOs
         return headerList.stream().map(header -> {
             InvoiceApplyHeaderDTO dto = InvoiceApplyHeaderDTOMapper.toDTO(header);
@@ -171,12 +224,12 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
 
     private List<InvoiceApplyHeader> getNewInvoices(List<InvoiceApplyHeader> invoiceApplyHeaders) {
         return invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderId() == null)
-                .collect(Collectors.toList());
+                                  .collect(Collectors.toList());
     }
 
     private List<InvoiceApplyHeader> getExistingInvoices(List<InvoiceApplyHeader> invoiceApplyHeaders) {
         return invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderId() != null)
-                .collect(Collectors.toList());
+                                  .collect(Collectors.toList());
     }
 
     private void inputValidation(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId) {
@@ -267,21 +320,37 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     }
 
     public List<InvoiceApplyHeader> invoiceHeaderCalculation(List<InvoiceApplyHeader> invoiceApplyHeaders) {
-        for (InvoiceApplyHeader invHeader : invoiceApplyHeaders) {
-            InvoiceApplyHeaderDTO detailHeader = headerRepository.selectByPrimary(invHeader.getApplyHeaderId());
-            BigDecimal totalAmount = BigDecimal.ZERO;
-            BigDecimal totalExcludeTax = BigDecimal.ZERO;
-            BigDecimal totalTax = BigDecimal.ZERO;
-            for (InvoiceApplyLine line : detailHeader.getInvoiceApplyLineList()) {
-                totalAmount = totalAmount.add(line.getTotalAmount());
-                totalExcludeTax = totalExcludeTax.add(line.getExcludeTaxAmount());
-                totalTax = totalTax.add(line.getTaxAmount());
-            }
+        // Fetch corresponding Invoice Headers and relevant Invoice Lines
+        Set<String> headerIds = invoiceApplyHeaders.stream().map(header -> header.getApplyHeaderId().toString())
+                                                   .collect(Collectors.toSet());
+        List<InvoiceApplyHeader> fetchedInvHeaders = headerRepository.selectByIds(String.join(",", headerIds));
+        List<InvoiceApplyLine> invoiceApplyLines = lineRepository.selectAll();
+        // TODO: Create selectByHeaderIds method to change selectAll
+        // List<InvoiceApplyLine> invoiceApplyLines = lineRepository.selectByHeaderIds(headerIds);
+
+        // Group Invoice Lines by Header ID for faster lookups
+        Map<String, List<InvoiceApplyLine>> linesGroupedByHeader =
+                invoiceApplyLines.stream().collect(Collectors.groupingBy(line -> line.getApplyHeaderId().toString()));
+
+        // Calculate the total amount, total exclude tax, and total tax
+        for (InvoiceApplyHeader invHeader : fetchedInvHeaders) {
+            List<InvoiceApplyLine> linesForHeader =
+                    linesGroupedByHeader.getOrDefault(invHeader.getApplyHeaderId().toString(), Collections.emptyList());
+            // Total amount
+            BigDecimal totalAmount = linesForHeader.stream().map(InvoiceApplyLine::getTotalAmount)
+                                                   .reduce(BigDecimal.ZERO, BigDecimal::add);
+            // Exclude tax amount
+            BigDecimal totalExcludeTax = linesForHeader.stream().map(InvoiceApplyLine::getExcludeTaxAmount)
+                                                       .reduce(BigDecimal.ZERO, BigDecimal::add);
+            // Tax amount
+            BigDecimal totalTax = linesForHeader.stream().map(InvoiceApplyLine::getTaxAmount)
+                                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            // Update totals for each Invoice Header
             invHeader.setTotalAmount(totalAmount);
-            invHeader.setTaxAmount(totalTax);
             invHeader.setExcludeTaxAmount(totalExcludeTax);
+            invHeader.setTaxAmount(totalTax);
         }
-        return invoiceApplyHeaders;
+        return fetchedInvHeaders;
     }
 }
 

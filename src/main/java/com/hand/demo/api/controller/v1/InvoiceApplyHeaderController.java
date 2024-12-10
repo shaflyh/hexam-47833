@@ -80,8 +80,7 @@ public class InvoiceApplyHeaderController extends BaseController {
     @GetMapping("/{applyHeaderId}/detail")
     public ResponseEntity<InvoiceApplyHeaderDTO> detail(@PathVariable Long applyHeaderId,
                                                         @PathVariable Long organizationId) {
-        InvoiceApplyHeaderDTO invoiceApplyHeader = invoiceApplyHeaderRepository.selectByPrimary(applyHeaderId);
-        return Results.success(invoiceApplyHeader);
+        return Results.success(invoiceApplyHeaderService.selectDetail(applyHeaderId));
     }
 
     @ApiOperation(value = "Create or Update")

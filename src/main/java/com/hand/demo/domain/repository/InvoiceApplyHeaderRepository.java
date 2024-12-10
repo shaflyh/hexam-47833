@@ -27,7 +27,7 @@ public interface InvoiceApplyHeaderRepository extends BaseRepository<InvoiceAppl
      * @param applyHeaderId 主键
      * @return 返回值
      */
-    InvoiceApplyHeaderDTO selectByPrimary(Long applyHeaderId);
+    InvoiceApplyHeader selectByPrimary(Long applyHeaderId);
 
     /**
      * Check existing invoices id

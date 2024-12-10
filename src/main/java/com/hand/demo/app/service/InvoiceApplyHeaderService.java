@@ -37,6 +37,14 @@ public interface InvoiceApplyHeaderService {
                                                       Long organizationId);
 
     /**
+     * Select Invoice Header detail by Header ID
+     *
+     * @param applyHeaderId applyHeaderId
+     * @return InvoiceApplyHeaderDTO
+     */
+    InvoiceApplyHeaderDTO selectDetail(Long applyHeaderId);
+
+    /**
      * Save and update invoice header
      *
      * @param invoiceApplyHeaders 数据

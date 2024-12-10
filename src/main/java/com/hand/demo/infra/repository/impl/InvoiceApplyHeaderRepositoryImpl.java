@@ -40,38 +40,15 @@ public class InvoiceApplyHeaderRepositoryImpl extends BaseRepositoryImpl<Invoice
         return invoiceApplyHeaderMapper.selectList(invoiceApplyHeader);
     }
 
-    /**
-     * Question 4:
-     * @return InvoiceApplyHeaderDTO with invoice meaning and invoice line list for selected header id
-     * Cache Invoice Header detail to Redis before return
-     */
     @Override
-    public InvoiceApplyHeaderDTO selectByPrimary(Long applyHeaderId) {
+    public InvoiceApplyHeader selectByPrimary(Long applyHeaderId) {
         InvoiceApplyHeader invoiceApplyHeader = new InvoiceApplyHeader();
         invoiceApplyHeader.setApplyHeaderId(applyHeaderId);
         List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceApplyHeaderMapper.selectList(invoiceApplyHeader);
         if (invoiceApplyHeaders.isEmpty()) {
             return null;
         }
-        InvoiceApplyHeaderDTO headerDTO = InvoiceApplyHeaderDTOMapper.toDTO(invoiceApplyHeaders.get(0));
-        // Get the invoice lines into the invoice header detail
-        List<InvoiceApplyLine> invoiceApplyLines = invoiceApplyLineMapper.selectLinesByHeaderId(applyHeaderId);
-        headerDTO.setInvoiceApplyLineList(invoiceApplyLines);
-        // Save invoice header detail in Redis
-        try {
-            // Serialize the DTO to JSON
-            ObjectMapper objectMapper = new ObjectMapper();
-            String dtoJson = objectMapper.writeValueAsString(headerDTO);
-            // Save to Redis
-            String redisKey = "hexam-47833:invoice-header:" + headerDTO.getApplyHeaderId();
-            redisHelper.hshPut(redisKey, String.valueOf(headerDTO.getApplyHeaderId()), dtoJson);
-            redisHelper.setExpire(redisKey, 10, TimeUnit.MINUTES);
-        } catch (JsonProcessingException e) {
-            throw new CommonException("Failed to serialize DTO: " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new CommonException("Redis operation failed: " + e.getMessage(), e);
-        }
-        return headerDTO;
+        return invoiceApplyHeaders.get(0);
     }
 
     @Override
