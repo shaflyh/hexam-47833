@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import com.hand.demo.domain.entity.InvoiceApplyLine;
 import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
-import com.hand.demo.infra.constant.CodeRuleConst;
-import com.hand.demo.infra.constant.Constants;
-import com.hand.demo.infra.constant.ErrorCodeConst;
-import com.hand.demo.infra.constant.LovConst;
+import com.hand.demo.infra.constant.*;
 import com.hand.demo.infra.mapper.InvoiceApplyHeaderDTOMapper;
 import com.hand.demo.infra.mapper.InvoiceApplyHeaderMapper;
 import com.hand.demo.infra.mapper.InvoiceApplyLineMapper;
@@ -22,6 +19,8 @@ import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.core.redis.RedisHelper;
 import org.hzero.core.redis.RedisQueueHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvoiceApplyHeaderService;
 import org.springframework.stereotype.Service;
@@ -52,6 +51,8 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     private final RedisHelper redisHelper;
     private final RedisQueueHelper redisQueueHelper;
 
+    private static final Logger logger = LoggerFactory.getLogger(InvoiceApplyHeaderServiceImpl.class);
+
     @Autowired
     public InvoiceApplyHeaderServiceImpl(InvoiceApplyHeaderRepository headerRepository,
                                          InvoiceApplyHeaderMapper invoiceApplyHeaderMapper,
@@ -77,13 +78,13 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     /**
      * Question 3:
      * Select list method with return Header DTO list with meaning LoV meaning
-     * Fuzzy search implemented in the xml mapper
+     * Fuzzy search implemented in the XML mapper
      */
     @Override
     public Page<InvoiceApplyHeaderDTO> selectListWithMeaning(PageRequest pageRequest,
                                                              InvoiceApplyHeader invoiceApplyHeader,
                                                              Long organizationId) {
-        // Invoice Apply Header page list
+        // Invoice Apply Header page lists
         Page<InvoiceApplyHeader> invoiceApplyHeaderPage =
                 PageHelper.doPageAndSort(pageRequest, () -> headerRepository.selectList(invoiceApplyHeader));
         // Convert the Invoice Header list to the Invoice Apply Header DTOs
@@ -112,19 +113,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         List<InvoiceApplyLine> invoiceApplyLines = invoiceApplyLineMapper.selectLinesByHeaderId(applyHeaderId);
         headerDTO.setInvoiceApplyLineList(invoiceApplyLines);
         // Save invoice header detail in Redis
-        try {
-            // Serialize the DTO to JSON
-            ObjectMapper objectMapper = new ObjectMapper();
-            String dtoJson = objectMapper.writeValueAsString(headerDTO);
-            // Save to Redis
-            String redisKey = "hexam-47833:invoice-header:" + headerDTO.getApplyHeaderId();
-            redisHelper.hshPut(redisKey, String.valueOf(headerDTO.getApplyHeaderId()), dtoJson);
-            redisHelper.setExpire(redisKey, 10, TimeUnit.MINUTES);
-        } catch (JsonProcessingException e) {
-            throw new CommonException("Failed to serialize DTO: " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new CommonException("Redis operation failed: " + e.getMessage(), e);
-        }
+        saveHeaderRedis(headerDTO);
         return headerDTO;
     }
 
@@ -166,7 +155,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
             setInvoiceType(invoiceType);
         }});
         if (invoiceApplyHeaders.isEmpty()) {
-            System.out.println("InvoiceApplyHeaders is empty for scheduling task");
+            logger.info("InvoiceApplyHeaders is empty for scheduling task");
             return;
         }
         ObjectMapper objectMapper = new ObjectMapper();
@@ -258,7 +247,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
 
     private void updateInvoiceHeader(List<InvoiceApplyHeader> updateList) {
         if (!updateList.isEmpty()) {
-            // Check if invoice header apply id exist in database
+            // Check if Invoice Header ID exist in the database
             List<Long> updateIds =
                     updateList.stream().map(InvoiceApplyHeader::getApplyHeaderId).collect(Collectors.toList());
             List<Long> existingIds = headerRepository.findExistingIds(updateIds);
@@ -336,13 +325,11 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         for (InvoiceApplyHeader invHeader : fetchedInvHeaders) {
             List<InvoiceApplyLine> linesForHeader =
                     linesGroupedByHeader.getOrDefault(invHeader.getApplyHeaderId().toString(), Collections.emptyList());
-            // Total amount
+            // Total calculation
             BigDecimal totalAmount = linesForHeader.stream().map(InvoiceApplyLine::getTotalAmount)
                                                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            // Exclude tax amount
             BigDecimal totalExcludeTax = linesForHeader.stream().map(InvoiceApplyLine::getExcludeTaxAmount)
                                                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-            // Tax amount
             BigDecimal totalTax = linesForHeader.stream().map(InvoiceApplyLine::getTaxAmount)
                                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
             // Update totals for each Invoice Header
@@ -351,6 +338,23 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
             invHeader.setTaxAmount(totalTax);
         }
         return fetchedInvHeaders;
+    }
+
+    private void saveHeaderRedis(InvoiceApplyHeaderDTO headerDTO) {
+        try {
+            // Serialize the DTO to JSON
+            ObjectMapper objectMapper = new ObjectMapper();
+            String dtoJson = objectMapper.writeValueAsString(headerDTO);
+            // Save to Redis
+            logger.info("Saving Invoice Header detail to Redis...");
+            String redisKey = RedisKeyConst.REDIS_HEADER_DETAIL_KEY + headerDTO.getApplyHeaderId();
+            redisHelper.hshPut(redisKey, String.valueOf(headerDTO.getApplyHeaderId()), dtoJson);
+            redisHelper.setExpire(redisKey, 10, TimeUnit.MINUTES);
+        } catch (JsonProcessingException e) {
+            throw new CommonException("Failed to serialize DTO: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new CommonException("Redis operation failed: " + e.getMessage(), e);
+        }
     }
 }
 
