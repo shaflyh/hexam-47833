@@ -1,12 +1,7 @@
 package com.hand.demo.infra.repository.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
-import com.hand.demo.domain.entity.InvoiceApplyLine;
-import com.hand.demo.infra.mapper.InvoiceApplyHeaderDTOMapper;
 import com.hand.demo.infra.mapper.InvoiceApplyLineMapper;
-import io.choerodon.core.exception.CommonException;
 import org.hzero.core.redis.RedisHelper;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
@@ -17,7 +12,6 @@ import com.hand.demo.infra.mapper.InvoiceApplyHeaderMapper;
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * (InvoiceApplyHeader)资源库

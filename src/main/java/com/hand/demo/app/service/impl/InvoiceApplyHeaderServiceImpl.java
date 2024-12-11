@@ -6,11 +6,9 @@ import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import com.hand.demo.domain.entity.InvoiceApplyLine;
 import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
 import com.hand.demo.infra.constant.*;
-import com.hand.demo.infra.mapper.InvoiceApplyHeaderDTOMapper;
 import com.hand.demo.infra.mapper.InvoiceApplyHeaderMapper;
 import com.hand.demo.infra.mapper.InvoiceApplyLineMapper;
 import io.choerodon.core.domain.Page;
-import io.choerodon.core.domain.PageInfo;
 import io.choerodon.core.exception.CommonException;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
@@ -18,7 +16,6 @@ import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
-import org.hzero.core.base.BaseConstants;
 import org.hzero.core.redis.RedisHelper;
 import org.hzero.core.redis.RedisQueueHelper;
 import org.slf4j.Logger;
@@ -86,14 +83,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     public Page<InvoiceApplyHeaderDTO> selectListWithMeaning(PageRequest pageRequest,
                                                              InvoiceApplyHeaderDTO invoiceApplyHeader,
                                                              Long organizationId) {
-        // Invoice Apply Header page lists
-        Page<InvoiceApplyHeaderDTO> invoiceApplyHeaderPage =
-                PageHelper.doPageAndSort(pageRequest, () -> headerRepository.selectList(invoiceApplyHeader));
-        // Convert the Invoice Header list to the Invoice Apply Header DTOs
-        List<InvoiceApplyHeaderDTO> headerDTOList =
-                invoiceApplyHeaderPage.stream().map(InvoiceApplyHeaderDTOMapper::toDTO).collect(Collectors.toList());
-        PageInfo pageInfo = new PageInfo(pageRequest.getPage(), pageRequest.getSize());
-        return new Page<>(headerDTOList, pageInfo, invoiceApplyHeaderPage.getTotalElements());
+        return PageHelper.doPageAndSort(pageRequest, () -> headerRepository.selectList(invoiceApplyHeader));
     }
 
     /**
@@ -110,7 +100,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         if (invoiceApplyHeaders.isEmpty()) {
             return null;
         }
-        InvoiceApplyHeaderDTO headerDTO = InvoiceApplyHeaderDTOMapper.toDTO(invoiceApplyHeaders.get(0));
+        InvoiceApplyHeaderDTO headerDTO = invoiceApplyHeaders.get(0);
         // Get the invoice lines into the invoice header detail
         List<InvoiceApplyLine> invoiceApplyLines = invoiceApplyLineMapper.selectLinesByHeaderId(applyHeaderId);
         headerDTO.setInvoiceApplyLineList(invoiceApplyLines);
@@ -150,18 +140,19 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
      */
     @Override
     public void invoiceSchedulingTask(String delFlag, String applyStatus, String invoiceColor, String invoiceType) {
-        List<InvoiceApplyHeaderDTO> invoiceApplyHeaders = headerRepository.selectList(new InvoiceApplyHeaderDTO() {{
-            setDelFlag(Integer.parseInt(delFlag));
-            setApplyStatus(applyStatus);
-            setInvoiceColor(invoiceColor);
-            setInvoiceType(invoiceType);
-        }});
+        // Get a list of Invoice Header with selected parameter
+        InvoiceApplyHeaderDTO headerDTO = new InvoiceApplyHeaderDTO();
+        headerDTO.setDelFlag(Integer.parseInt(delFlag));
+        headerDTO.setApplyStatus(applyStatus);
+        headerDTO.setInvoiceColor(invoiceColor);
+        headerDTO.setInvoiceType(invoiceType);
+        List<InvoiceApplyHeaderDTO> invoiceApplyHeaders = headerRepository.selectList(headerDTO);
         if (invoiceApplyHeaders.isEmpty()) {
             logger.info("InvoiceApplyHeaders is empty for scheduling task");
             return;
         }
         ObjectMapper objectMapper = new ObjectMapper();
-        // Convert each InvoiceApplyHeader to JSON string and collect into a List
+        // Convert each InvoiceApplyHeader to JSON string and push to Redis
         try {
             // Convert list to JSON string
             String jsonString = objectMapper.writeValueAsString(invoiceApplyHeaders);
@@ -252,6 +243,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
             List<InvoiceApplyHeaderDTO> updatedHeader = new ArrayList<>();
             for (InvoiceApplyHeaderDTO newInvoice : updateList) {
                 // Check if invoice header apply number exist in the database
+                // TODO: Don't have query inside of loop!
                 InvoiceApplyHeaderDTO header = headerRepository.selectOne(new InvoiceApplyHeaderDTO() {{
                     setApplyHeaderNumber(newInvoice.getApplyHeaderNumber());
                 }});
