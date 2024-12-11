@@ -184,7 +184,22 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     @Override
     @ProcessLovValue
     public List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyHeaderDTO invoiceApplyHeader, Long organizationId) {
-        return headerRepository.selectList(invoiceApplyHeader);
+        // Fetch headers based on the input filter
+        List<InvoiceApplyHeaderDTO> headerDTOList = headerRepository.selectList(invoiceApplyHeader);
+        if (headerDTOList == null || headerDTOList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        // Fetch all lines and group them by applyHeaderId for quick lookup
+        List<InvoiceApplyLine> invoiceApplyLines = lineRepository.selectAll();
+        Map<Long, List<InvoiceApplyLine>> linesGroupedByHeaderId =
+                invoiceApplyLines.stream().collect(Collectors.groupingBy(InvoiceApplyLine::getApplyHeaderId));
+        // Assign the grouped lines to each header
+        headerDTOList.forEach(header -> {
+            List<InvoiceApplyLine> lines =
+                    linesGroupedByHeaderId.getOrDefault(header.getApplyHeaderId(), new ArrayList<>());
+            header.setInvoiceApplyLineList(lines);
+        });
+        return headerDTOList;
     }
 
     private List<InvoiceApplyHeaderDTO> getNewInvoices(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders) {
@@ -286,6 +301,8 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     }
 
     public List<InvoiceApplyHeaderDTO> invoiceHeaderCalculation(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders) {
+
+
         // Fetch corresponding Invoice Headers and relevant Invoice Lines
         Set<String> headerIds = invoiceApplyHeaders.stream().map(header -> header.getApplyHeaderId().toString())
                                                    .collect(Collectors.toSet());
@@ -297,6 +314,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         // Group Invoice Lines by Header ID for faster lookups
         Map<String, List<InvoiceApplyLine>> linesGroupedByHeader =
                 invoiceApplyLines.stream().collect(Collectors.groupingBy(line -> line.getApplyHeaderId().toString()));
+
 
         // Calculate the total amount, total exclude tax, and total tax
         for (InvoiceApplyHeaderDTO invHeader : fetchedInvHeaders) {

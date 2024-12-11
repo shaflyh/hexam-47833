@@ -54,8 +54,8 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
      * Question 7:
      * Invoice Line save and update
      * - updateInvoiceLines method for update
-     *    - updateInvoiceLineValidation() for update validation
-     *    - invoiceLineCalculation() for exclude_tax_amount, tax_amount, and total_amount calculation
+     * - updateInvoiceLineValidation() for update validation
+     * - invoiceLineCalculation() for exclude_tax_amount, tax_amount, and total_amount calculation
      * - insertInvoiceLines method for save
      */
     @Override
@@ -100,6 +100,7 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
             List<InvoiceApplyLine> newInvoiceLines = new ArrayList<>();
             for (InvoiceApplyLine line : updateList) {
                 // Check if invoice header apply number exist in database
+                // TODO: Fix this
                 InvoiceApplyLine newInvoiceLine = lineRepository.selectOne(new InvoiceApplyLine() {{
                     setApplyLineId(line.getApplyLineId());
                 }});
@@ -171,14 +172,7 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
 
     @Override
     public List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyLine invoiceApplyLine, Long organizationId) {
-        // Get the Invoice Apply Header DTO
-        List<InvoiceApplyHeaderDTO> headerDTOList = headerService.exportData(new InvoiceApplyHeaderDTO(), organizationId);
-        // Set Invoice Line List for each Invoice Header
-        for (InvoiceApplyHeaderDTO dto : headerDTOList) {
-            List<InvoiceApplyLine> invoiceApplyLines = lineMapper.selectLinesByHeaderId(dto.getApplyHeaderId());
-            dto.setInvoiceApplyLineList(invoiceApplyLines);
-        }
-        return headerDTOList;
+        return headerService.exportData(new InvoiceApplyHeaderDTO(), organizationId);
     }
 }
 
