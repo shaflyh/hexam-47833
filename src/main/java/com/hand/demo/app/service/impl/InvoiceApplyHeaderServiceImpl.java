@@ -16,7 +16,9 @@ import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
+import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
+import org.hzero.core.base.BaseConstants;
 import org.hzero.core.redis.RedisHelper;
 import org.hzero.core.redis.RedisQueueHelper;
 import org.slf4j.Logger;
@@ -186,29 +188,12 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
      * Export Invoice Header
      *
      * @return List InvoiceApplyHeaderDTO
-     * Parse the meaning first before return from the value set
+     * Parse the meaning by adding @ProcessLovValue
      */
     @Override
+    @ProcessLovValue
     public List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyHeaderDTO invoiceApplyHeader, Long organizationId) {
-        List<InvoiceApplyHeaderDTO> headerList = headerRepository.selectList(invoiceApplyHeader);
-        // Get meaning data from LoV adapter
-        Map<String, String> invStatusMap =
-                lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_STATUS, organizationId).stream()
-                          .collect(Collectors.toMap(LovValueDTO::getValue, LovValueDTO::getMeaning));
-        Map<String, String> invColorMap =
-                lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_COLOR, organizationId).stream()
-                          .collect(Collectors.toMap(LovValueDTO::getValue, LovValueDTO::getMeaning));
-        Map<String, String> invTypeMap =
-                lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_TYPE, organizationId).stream()
-                          .collect(Collectors.toMap(LovValueDTO::getValue, LovValueDTO::getMeaning));
-        // Update meaning in DTOs
-        return headerList.stream().map(header -> {
-            InvoiceApplyHeaderDTO dto = InvoiceApplyHeaderDTOMapper.toDTO(header);
-            dto.setApplyStatusMeaning(invStatusMap.get(dto.getApplyStatus()));
-            dto.setInvoiceColorMeaning(invColorMap.get(dto.getInvoiceColor()));
-            dto.setInvoiceTypeMeaning(invTypeMap.get(dto.getInvoiceType()));
-            return dto;
-        }).collect(Collectors.toList());
+        return headerRepository.selectList(invoiceApplyHeader);
     }
 
     private List<InvoiceApplyHeaderDTO> getNewInvoices(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders) {
