@@ -50,7 +50,7 @@ public class InvoiceApplyHeaderController extends BaseController {
     @ApiOperation(value = "列表")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
-    public ResponseEntity<Page<InvoiceApplyHeader>> list(InvoiceApplyHeader invoiceApplyHeader,
+    public ResponseEntity<Page<InvoiceApplyHeader>> list(InvoiceApplyHeaderDTO invoiceApplyHeader,
                                                          @PathVariable Long organizationId, @ApiIgnore
                                                          @SortDefault(value = InvoiceApplyHeader.FIELD_APPLY_HEADER_ID,
                                                                  direction = Sort.Direction.DESC)
@@ -63,7 +63,7 @@ public class InvoiceApplyHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     @GetMapping("/meaning")
-    public ResponseEntity<Page<InvoiceApplyHeaderDTO>> listMeaning(InvoiceApplyHeader invoiceApplyHeader,
+    public ResponseEntity<Page<InvoiceApplyHeaderDTO>> listMeaning(InvoiceApplyHeaderDTO invoiceApplyHeader,
                                                                    @PathVariable Long organizationId, @ApiIgnore
                                                                    @SortDefault(
                                                                            value = InvoiceApplyHeader.FIELD_APPLY_HEADER_ID,
@@ -86,8 +86,8 @@ public class InvoiceApplyHeaderController extends BaseController {
     @ApiOperation(value = "Create or Update")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
-    public ResponseEntity<List<InvoiceApplyHeader>> save(@PathVariable Long organizationId,
-                                                         @RequestBody List<InvoiceApplyHeader> invoiceApplyHeaders) {
+    public ResponseEntity<List<InvoiceApplyHeaderDTO>> save(@PathVariable Long organizationId,
+                                                         @RequestBody List<InvoiceApplyHeaderDTO> invoiceApplyHeaders) {
         validObject(invoiceApplyHeaders);
         SecurityTokenHelper.validTokenIgnoreInsert(invoiceApplyHeaders);
         invoiceApplyHeaders.forEach(item -> item.setTenantId(organizationId));
@@ -111,7 +111,7 @@ public class InvoiceApplyHeaderController extends BaseController {
     @ExcelExport(value = InvoiceApplyHeaderDTO.class)
     @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     public ResponseEntity<List<InvoiceApplyHeaderDTO>> export(@PathVariable Long organizationId,
-                                                              InvoiceApplyHeader invoiceApplyHeader,
+                                                              InvoiceApplyHeaderDTO invoiceApplyHeader,
                                                               ExportParam exportParam, HttpServletResponse response) {
         return Results.success(invoiceApplyHeaderService.exportData(invoiceApplyHeader, organizationId));
     }

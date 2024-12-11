@@ -23,7 +23,7 @@ public interface InvoiceApplyHeaderService {
      * @param invoiceApplyHeaders 查询条件
      * @return 返回值
      */
-    Page<InvoiceApplyHeader> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeaders);
+    Page<InvoiceApplyHeader> selectList(PageRequest pageRequest, InvoiceApplyHeaderDTO invoiceApplyHeaders);
 
     /**
      * 查询数据
@@ -33,7 +33,7 @@ public interface InvoiceApplyHeaderService {
      * @param organizationId      Tenant id
      * @return InvoiceApplyHeaderDTO Page
      */
-    Page<InvoiceApplyHeaderDTO> selectListWithMeaning(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeaders,
+    Page<InvoiceApplyHeaderDTO> selectListWithMeaning(PageRequest pageRequest, InvoiceApplyHeaderDTO invoiceApplyHeaders,
                                                       Long organizationId);
 
     /**
@@ -50,7 +50,7 @@ public interface InvoiceApplyHeaderService {
      * @param invoiceApplyHeaders 数据
      * @param organizationId      Tenant id
      */
-    void saveData(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId);
+    void saveData(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders, Long organizationId);
 
     /**
      * Update Header By Invoice Lines
@@ -64,7 +64,7 @@ public interface InvoiceApplyHeaderService {
      *
      * @param invoiceApplyHeader Invoice apply header
      */
-    List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyHeader invoiceApplyHeader, Long organizationId);
+    List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyHeaderDTO invoiceApplyHeader, Long organizationId);
 
     /**
      * Save and update invoice header by import
@@ -72,7 +72,7 @@ public interface InvoiceApplyHeaderService {
      * @param invoiceApplyHeaders Invoice apply header
      * @param organizationId      Tenant id
      */
-    void saveDataByImport(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId);
+    void saveDataByImport(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders, Long organizationId);
 
     /**
      * Invoice Scheduling Task

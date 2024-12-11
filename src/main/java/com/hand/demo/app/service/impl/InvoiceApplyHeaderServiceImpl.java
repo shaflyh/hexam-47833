@@ -71,7 +71,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     }
 
     @Override
-    public Page<InvoiceApplyHeader> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeader) {
+    public Page<InvoiceApplyHeader> selectList(PageRequest pageRequest, InvoiceApplyHeaderDTO invoiceApplyHeader) {
         return PageHelper.doPageAndSort(pageRequest, () -> headerRepository.selectList(invoiceApplyHeader));
     }
 
@@ -82,10 +82,10 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
      */
     @Override
     public Page<InvoiceApplyHeaderDTO> selectListWithMeaning(PageRequest pageRequest,
-                                                             InvoiceApplyHeader invoiceApplyHeader,
+                                                             InvoiceApplyHeaderDTO invoiceApplyHeader,
                                                              Long organizationId) {
         // Invoice Apply Header page lists
-        Page<InvoiceApplyHeader> invoiceApplyHeaderPage =
+        Page<InvoiceApplyHeaderDTO> invoiceApplyHeaderPage =
                 PageHelper.doPageAndSort(pageRequest, () -> headerRepository.selectList(invoiceApplyHeader));
         // Convert the Invoice Header list to the Invoice Apply Header DTOs
         List<InvoiceApplyHeaderDTO> headerDTOList =
@@ -102,9 +102,9 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
      */
     @Override
     public InvoiceApplyHeaderDTO selectDetail(Long applyHeaderId) {
-        InvoiceApplyHeader invoiceApplyHeader = new InvoiceApplyHeader();
+        InvoiceApplyHeaderDTO invoiceApplyHeader = new InvoiceApplyHeaderDTO();
         invoiceApplyHeader.setApplyHeaderId(applyHeaderId);
-        List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceApplyHeaderMapper.selectList(invoiceApplyHeader);
+        List<InvoiceApplyHeaderDTO> invoiceApplyHeaders = invoiceApplyHeaderMapper.selectList(invoiceApplyHeader);
         if (invoiceApplyHeaders.isEmpty()) {
             return null;
         }
@@ -125,19 +125,19 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
      * - Code rule generation for Header number on Invoice Header insert
      */
     @Override
-    public void saveData(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId) {
+    public void saveData(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders, Long organizationId) {
         inputValidation(invoiceApplyHeaders, organizationId);
-        List<InvoiceApplyHeader> insertList = getNewInvoices(invoiceApplyHeaders);
-        List<InvoiceApplyHeader> updateList = getExistingInvoices(invoiceApplyHeaders);
+        List<InvoiceApplyHeaderDTO> insertList = getNewInvoices(invoiceApplyHeaders);
+        List<InvoiceApplyHeaderDTO> updateList = getExistingInvoices(invoiceApplyHeaders);
         updateInvoiceHeader(updateList);
         insertInvoiceHeader(insertList);
     }
 
     @Override
-    public void saveDataByImport(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId) {
+    public void saveDataByImport(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders, Long organizationId) {
         inputValidation(invoiceApplyHeaders, organizationId);
-        List<InvoiceApplyHeader> insertList = getNewInvoices(invoiceApplyHeaders);
-        List<InvoiceApplyHeader> updateList = getExistingInvoices(invoiceApplyHeaders);
+        List<InvoiceApplyHeaderDTO> insertList = getNewInvoices(invoiceApplyHeaders);
+        List<InvoiceApplyHeaderDTO> updateList = getExistingInvoices(invoiceApplyHeaders);
         updateInvoiceByImport(updateList);
         insertInvoiceHeader(insertList);
     }
@@ -148,7 +148,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
      */
     @Override
     public void invoiceSchedulingTask(String delFlag, String applyStatus, String invoiceColor, String invoiceType) {
-        List<InvoiceApplyHeader> invoiceApplyHeaders = headerRepository.selectList(new InvoiceApplyHeader() {{
+        List<InvoiceApplyHeaderDTO> invoiceApplyHeaders = headerRepository.selectList(new InvoiceApplyHeaderDTO() {{
             setDelFlag(Integer.parseInt(delFlag));
             setApplyStatus(applyStatus);
             setInvoiceColor(invoiceColor);
@@ -173,9 +173,9 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
 
     @Override
     public void updateHeaderByInvoiceLines(List<InvoiceApplyLine> invoiceApplyLines) {
-        List<InvoiceApplyHeader> headerList = new ArrayList<>();
+        List<InvoiceApplyHeaderDTO> headerList = new ArrayList<>();
         for (InvoiceApplyLine line : invoiceApplyLines) {
-            InvoiceApplyHeader header = headerRepository.selectByPrimaryKey(line.getApplyHeaderId());
+            InvoiceApplyHeaderDTO header = headerRepository.selectByPrimaryKey(line.getApplyHeaderId());
             headerList.add(header);
         }
         updateInvoiceHeader(headerList);
@@ -189,8 +189,8 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
      * Parse the meaning first before return from the value set
      */
     @Override
-    public List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyHeader invoiceApplyHeader, Long organizationId) {
-        List<InvoiceApplyHeader> headerList = headerRepository.selectList(invoiceApplyHeader);
+    public List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyHeaderDTO invoiceApplyHeader, Long organizationId) {
+        List<InvoiceApplyHeaderDTO> headerList = headerRepository.selectList(invoiceApplyHeader);
         // Get meaning data from LoV adapter
         Map<String, String> invStatusMap =
                 lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_STATUS, organizationId).stream()
@@ -211,17 +211,17 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         }).collect(Collectors.toList());
     }
 
-    private List<InvoiceApplyHeader> getNewInvoices(List<InvoiceApplyHeader> invoiceApplyHeaders) {
+    private List<InvoiceApplyHeaderDTO> getNewInvoices(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders) {
         return invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderId() == null)
                                   .collect(Collectors.toList());
     }
 
-    private List<InvoiceApplyHeader> getExistingInvoices(List<InvoiceApplyHeader> invoiceApplyHeaders) {
+    private List<InvoiceApplyHeaderDTO> getExistingInvoices(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders) {
         return invoiceApplyHeaders.stream().filter(line -> line.getApplyHeaderId() != null)
                                   .collect(Collectors.toList());
     }
 
-    private void inputValidation(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId) {
+    private void inputValidation(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders, Long organizationId) {
         // apply_status, invoice_color, and invoice_type validation
         List<LovValueDTO> invStatusList = lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_STATUS, organizationId);
         List<LovValueDTO> invColorList = lovAdapter.queryLovValue(LovConst.InvoiceHeader.INV_COLOR, organizationId);
@@ -245,7 +245,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         }
     }
 
-    private void updateInvoiceHeader(List<InvoiceApplyHeader> updateList) {
+    private void updateInvoiceHeader(List<InvoiceApplyHeaderDTO> updateList) {
         if (!updateList.isEmpty()) {
             // Check if Invoice Header ID exist in the database
             List<Long> updateIds =
@@ -257,17 +257,17 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
                 }
             }
             // Calculate total_amount, exclude_tax_amount, and tax_amount
-            List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceHeaderCalculation(updateList);
+            List<InvoiceApplyHeaderDTO> invoiceApplyHeaders = invoiceHeaderCalculation(updateList);
             headerRepository.batchUpdateByPrimaryKeySelective(invoiceApplyHeaders);
         }
     }
 
-    private void updateInvoiceByImport(List<InvoiceApplyHeader> updateList) {
+    private void updateInvoiceByImport(List<InvoiceApplyHeaderDTO> updateList) {
         if (!updateList.isEmpty()) {
-            List<InvoiceApplyHeader> updatedHeader = new ArrayList<>();
-            for (InvoiceApplyHeader newInvoice : updateList) {
-                // Check if invoice header apply number exist in database
-                InvoiceApplyHeader header = headerRepository.selectOne(new InvoiceApplyHeader() {{
+            List<InvoiceApplyHeaderDTO> updatedHeader = new ArrayList<>();
+            for (InvoiceApplyHeaderDTO newInvoice : updateList) {
+                // Check if invoice header apply number exist in the database
+                InvoiceApplyHeaderDTO header = headerRepository.selectOne(new InvoiceApplyHeaderDTO() {{
                     setApplyHeaderNumber(newInvoice.getApplyHeaderNumber());
                 }});
                 if (header == null) {
@@ -288,13 +288,13 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
                 updatedHeader.add(header);
             }
             // Calculate total_amount, exclude_tax_amount, and tax_amount
-            List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceHeaderCalculation(updatedHeader);
+            List<InvoiceApplyHeaderDTO> invoiceApplyHeaders = invoiceHeaderCalculation(updatedHeader);
             // Update invoice header
             headerRepository.batchUpdateByPrimaryKeySelective(invoiceApplyHeaders);
         }
     }
 
-    private void insertInvoiceHeader(List<InvoiceApplyHeader> insertList) {
+    private void insertInvoiceHeader(List<InvoiceApplyHeaderDTO> insertList) {
         if (!insertList.isEmpty()) {
             // Set invoice header name from Code Rule Builder
             for (InvoiceApplyHeader invHeader : insertList) {
@@ -308,21 +308,21 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         }
     }
 
-    public List<InvoiceApplyHeader> invoiceHeaderCalculation(List<InvoiceApplyHeader> invoiceApplyHeaders) {
+    public List<InvoiceApplyHeaderDTO> invoiceHeaderCalculation(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders) {
         // Fetch corresponding Invoice Headers and relevant Invoice Lines
         Set<String> headerIds = invoiceApplyHeaders.stream().map(header -> header.getApplyHeaderId().toString())
                                                    .collect(Collectors.toSet());
-        List<InvoiceApplyHeader> fetchedInvHeaders = headerRepository.selectByIds(String.join(",", headerIds));
+        List<InvoiceApplyHeaderDTO> fetchedInvHeaders = headerRepository.selectByIds(String.join(",", headerIds));
         List<InvoiceApplyLine> invoiceApplyLines = lineRepository.selectAll();
         // TODO: Create selectByHeaderIds method to change selectAll
-        // List<InvoiceApplyLine> invoiceApplyLines = lineRepository.selectByHeaderIds(headerIds);
+        // List<InvoiceApplyLine> invoiceApplyLines = lineService.selectByHeaderIds(headerIds);
 
         // Group Invoice Lines by Header ID for faster lookups
         Map<String, List<InvoiceApplyLine>> linesGroupedByHeader =
                 invoiceApplyLines.stream().collect(Collectors.groupingBy(line -> line.getApplyHeaderId().toString()));
 
         // Calculate the total amount, total exclude tax, and total tax
-        for (InvoiceApplyHeader invHeader : fetchedInvHeaders) {
+        for (InvoiceApplyHeaderDTO invHeader : fetchedInvHeaders) {
             List<InvoiceApplyLine> linesForHeader =
                     linesGroupedByHeader.getOrDefault(invHeader.getApplyHeaderId().toString(), Collections.emptyList());
             // Total calculation

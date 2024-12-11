@@ -136,11 +136,11 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
     }
 
     private void updateInvoiceLineValidation(List<InvoiceApplyLine> updateList) {
-        // Check if invoice apply header exist in database and not deleted
+        // Check if invoice apply header exist in the database and not deleted
         for (InvoiceApplyLine line : updateList) {
-            InvoiceApplyHeader invoiceApplyHeader = new InvoiceApplyHeader();
+            InvoiceApplyHeaderDTO invoiceApplyHeader = new InvoiceApplyHeaderDTO();
             invoiceApplyHeader.setApplyHeaderId(line.getApplyHeaderId());
-            InvoiceApplyHeader header = headerRepository.selectOne(invoiceApplyHeader);
+            InvoiceApplyHeaderDTO header = headerRepository.selectOne(invoiceApplyHeader);
             if (header == null) {
                 throw new CommonException(ErrorCodeConst.INVOICE_NOT_EXIST, line.getApplyHeaderId());
             } else if (header.getDelFlag() == 1) {
@@ -172,7 +172,7 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
     @Override
     public List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyLine invoiceApplyLine, Long organizationId) {
         // Get the Invoice Apply Header DTO
-        List<InvoiceApplyHeaderDTO> headerDTOList = headerService.exportData(new InvoiceApplyHeader(), organizationId);
+        List<InvoiceApplyHeaderDTO> headerDTOList = headerService.exportData(new InvoiceApplyHeaderDTO(), organizationId);
         // Set Invoice Line List for each Invoice Header
         for (InvoiceApplyHeaderDTO dto : headerDTOList) {
             List<InvoiceApplyLine> invoiceApplyLines = lineMapper.selectLinesByHeaderId(dto.getApplyHeaderId());

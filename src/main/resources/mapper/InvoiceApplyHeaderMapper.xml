@@ -42,7 +42,7 @@
         tiah.object_version_number
     </sql>
 
-    <select id = "selectList" resultType = "com.hand.demo.domain.entity.InvoiceApplyHeader">
+    <select id = "selectList" resultType = "com.hand.demo.api.dto.InvoiceApplyHeaderDTO">
         select
         <include refid = "BaseSql"/>
         from todo_invoice_apply_header tiah

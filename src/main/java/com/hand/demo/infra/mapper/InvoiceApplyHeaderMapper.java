@@ -1,5 +1,6 @@
 package com.hand.demo.infra.mapper;
 
+import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import io.choerodon.mybatis.common.BaseMapper;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 
@@ -11,14 +12,14 @@ import java.util.List;
  * @author Shafly - 47833
  * @since 2024-12-03 10:46:30
  */
-public interface InvoiceApplyHeaderMapper extends BaseMapper<InvoiceApplyHeader> {
+public interface InvoiceApplyHeaderMapper extends BaseMapper<InvoiceApplyHeaderDTO> {
     /**
      * 基础查询
      *
      * @param invoiceApplyHeader 查询条件
      * @return 返回值
      */
-    List<InvoiceApplyHeader> selectList(InvoiceApplyHeader invoiceApplyHeader);
+    List<InvoiceApplyHeaderDTO> selectList(InvoiceApplyHeaderDTO invoiceApplyHeader);
 
     /**
      * Query existing IDs

@@ -12,14 +12,14 @@ import java.util.List;
  * @author Shafly - 47833
  * @since 2024-12-03 10:46:31
  */
-public interface InvoiceApplyHeaderRepository extends BaseRepository<InvoiceApplyHeader> {
+public interface InvoiceApplyHeaderRepository extends BaseRepository<InvoiceApplyHeaderDTO> {
     /**
      * 查询
      *
      * @param invoiceApplyHeader 查询条件
      * @return 返回值
      */
-    List<InvoiceApplyHeader> selectList(InvoiceApplyHeader invoiceApplyHeader);
+    List<InvoiceApplyHeaderDTO> selectList(InvoiceApplyHeaderDTO invoiceApplyHeader);
 
     /**
      * 根据主键查询（可关联表）
