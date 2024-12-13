@@ -96,6 +96,7 @@ public class InvoiceApplyLineController extends BaseController {
     public ResponseEntity<?> remove(@PathVariable Long organizationId,
                                     @RequestBody List<InvoiceApplyLine> invoiceApplyLines) {
         SecurityTokenHelper.validToken(invoiceApplyLines);
+        // TODO: Move it to service!
         // Getting the Invoice Lines first before deleting the data (needed to get the the Invoice Header ID)
         List<InvoiceApplyLine> fetchedInvoiceApplyLines = new ArrayList<>();
         for (InvoiceApplyLine line : invoiceApplyLines) {

@@ -10,6 +10,7 @@ import org.hzero.core.redis.handler.QueueHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,8 +38,6 @@ public class InvoiceHeaderListener implements IQueueHandler {
         queue.setEmployeeId(Constants.EMPLOYEE_ID);
         queue.setTenantId(Constants.ORGANIZATION_ID);
         // Save the list of processed queue data
-        List<InvoiceInfoQueue> invoiceInfoQueues = new ArrayList<>();
-        invoiceInfoQueues.add(queue);
-        queueService.saveData(invoiceInfoQueues);
+        queueService.saveData(Collections.singletonList(queue));
     }
 }

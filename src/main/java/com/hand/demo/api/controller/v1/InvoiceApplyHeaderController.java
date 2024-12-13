@@ -101,6 +101,8 @@ public class InvoiceApplyHeaderController extends BaseController {
     public ResponseEntity<?> remove(@PathVariable Long organizationId,
                                     @RequestBody List<InvoiceApplyHeader> invoiceApplyHeaders) {
         SecurityTokenHelper.validToken(invoiceApplyHeaders);
+        // TODO: Need to make sure first if data exist in the database
+        // use updateOptional to update it in service
         invoiceApplyHeaderRepository.batchDeleteById(invoiceApplyHeaders);
         return Results.success();
     }
