@@ -47,8 +47,9 @@ public class InvoiceApplyHeaderController extends BaseController {
         this.invoiceApplyHeaderService = invoiceApplyHeaderService;
     }
 
-    @ApiOperation(value = "列表")
+    @ApiOperation(value = "List")
     @Permission(level = ResourceLevel.ORGANIZATION)
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     @GetMapping
     public ResponseEntity<Page<InvoiceApplyHeader>> list(InvoiceApplyHeaderDTO invoiceApplyHeader,
                                                          @PathVariable Long organizationId, @ApiIgnore
@@ -86,8 +87,8 @@ public class InvoiceApplyHeaderController extends BaseController {
     @ApiOperation(value = "Create or Update")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
-    public ResponseEntity<List<InvoiceApplyHeaderDTO>> save(@PathVariable Long organizationId,
-                                                         @RequestBody List<InvoiceApplyHeaderDTO> invoiceApplyHeaders) {
+    public ResponseEntity<List<InvoiceApplyHeader>> save(@PathVariable Long organizationId,
+                                                         @RequestBody List<InvoiceApplyHeader> invoiceApplyHeaders) {
         validObject(invoiceApplyHeaders);
         SecurityTokenHelper.validTokenIgnoreInsert(invoiceApplyHeaders);
         invoiceApplyHeaders.forEach(item -> item.setTenantId(organizationId));
@@ -104,6 +105,7 @@ public class InvoiceApplyHeaderController extends BaseController {
         // TODO: Need to make sure first if data exist in the database
         // use updateOptional to update it in service
         invoiceApplyHeaderRepository.batchDeleteById(invoiceApplyHeaders);
+        // TODO: Fix token... (where do we get the token beside takes it from console?)
         return Results.success();
     }
 

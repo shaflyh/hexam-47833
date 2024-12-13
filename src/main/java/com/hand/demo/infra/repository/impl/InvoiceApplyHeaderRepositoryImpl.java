@@ -20,7 +20,7 @@ import java.util.List;
  * @since 2024-12-03 10:46:31
  */
 @Component
-public class InvoiceApplyHeaderRepositoryImpl extends BaseRepositoryImpl<InvoiceApplyHeaderDTO>
+public class InvoiceApplyHeaderRepositoryImpl extends BaseRepositoryImpl<InvoiceApplyHeader>
         implements InvoiceApplyHeaderRepository {
     @Resource
     private InvoiceApplyHeaderMapper invoiceApplyHeaderMapper;
@@ -30,7 +30,7 @@ public class InvoiceApplyHeaderRepositoryImpl extends BaseRepositoryImpl<Invoice
     private RedisHelper redisHelper;
 
     @Override
-    public List<InvoiceApplyHeaderDTO> selectList(InvoiceApplyHeaderDTO invoiceApplyHeader) {
+    public List<InvoiceApplyHeaderDTO> selectList(InvoiceApplyHeader invoiceApplyHeader) {
         return invoiceApplyHeaderMapper.selectList(invoiceApplyHeader);
     }
 

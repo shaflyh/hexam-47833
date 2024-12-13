@@ -12,14 +12,14 @@ import java.util.List;
  * @author Shafly - 47833
  * @since 2024-12-03 10:46:30
  */
-public interface InvoiceApplyHeaderMapper extends BaseMapper<InvoiceApplyHeaderDTO> {
+public interface InvoiceApplyHeaderMapper extends BaseMapper<InvoiceApplyHeader> {
     /**
      * 基础查询
      *
      * @param invoiceApplyHeader 查询条件
      * @return 返回值
      */
-    List<InvoiceApplyHeaderDTO> selectList(InvoiceApplyHeaderDTO invoiceApplyHeader);
+    List<InvoiceApplyHeaderDTO> selectList(InvoiceApplyHeader invoiceApplyHeader);
 
     /**
      * Query existing IDs
@@ -30,7 +30,7 @@ public interface InvoiceApplyHeaderMapper extends BaseMapper<InvoiceApplyHeaderD
     List<Long> findExistingIds(List<Long> ids);
 
     /**
-     * Delete invoice header by apply header id
+     * Delete invoice header by Header ID
      *
      * @param id Apply header id
      */

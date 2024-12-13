@@ -90,6 +90,8 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
             List<InvoiceApplyLine> invoiceApplyLines = invoiceLineCalculation(updateList);
             // Update invoice lines
             lineRepository.batchUpdateByPrimaryKeySelective(invoiceApplyLines);
+            // Update the Invoice Headers
+            headerService.updateHeaderByInvoiceLines(invoiceApplyLines);
         }
     }
 
@@ -141,10 +143,12 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
         for (InvoiceApplyLine line : updateList) {
             InvoiceApplyHeaderDTO invoiceApplyHeader = new InvoiceApplyHeaderDTO();
             invoiceApplyHeader.setApplyHeaderId(line.getApplyHeaderId());
-            InvoiceApplyHeaderDTO header = headerRepository.selectOne(invoiceApplyHeader);
-            if (header == null) {
+//            InvoiceApplyHeader header = headerRepository.selectOne(invoiceApplyHeader);
+            List<InvoiceApplyHeaderDTO> header = headerRepository.selectList(invoiceApplyHeader);
+
+            if (header.get(0) == null) {
                 throw new CommonException(ErrorCodeConst.INVOICE_NOT_EXIST, line.getApplyHeaderId());
-            } else if (header.getDelFlag() == 1) {
+            } else if (header.get(0).getDelFlag() == 1) {
                 throw new CommonException(ErrorCodeConst.INVOICE_DELETED, line.getApplyHeaderId());
             }
         }

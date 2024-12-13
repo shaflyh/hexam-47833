@@ -23,7 +23,7 @@ public interface InvoiceApplyHeaderService {
      * @param invoiceApplyHeaders 查询条件
      * @return 返回值
      */
-    Page<InvoiceApplyHeader> selectList(PageRequest pageRequest, InvoiceApplyHeaderDTO invoiceApplyHeaders);
+    Page<InvoiceApplyHeader> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeaders);
 
     /**
      * 查询数据
@@ -33,7 +33,7 @@ public interface InvoiceApplyHeaderService {
      * @param organizationId      Tenant id
      * @return InvoiceApplyHeaderDTO Page
      */
-    Page<InvoiceApplyHeaderDTO> selectListWithMeaning(PageRequest pageRequest, InvoiceApplyHeaderDTO invoiceApplyHeaders,
+    Page<InvoiceApplyHeaderDTO> selectListWithMeaning(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeaders,
                                                       Long organizationId);
 
     /**
@@ -50,7 +50,7 @@ public interface InvoiceApplyHeaderService {
      * @param invoiceApplyHeaders 数据
      * @param organizationId      Tenant id
      */
-    void saveData(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders, Long organizationId);
+    void saveData(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId);
 
     /**
      * Update Header By Invoice Lines
@@ -62,17 +62,17 @@ public interface InvoiceApplyHeaderService {
     /**
      * Export invoice header data
      *
-     * @param invoiceApplyHeader Invoice apply header
+     * @param invoiceApplyHeader Invoice Apply Header
      */
-    List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyHeaderDTO invoiceApplyHeader, Long organizationId);
+    List<InvoiceApplyHeaderDTO> exportData(InvoiceApplyHeader invoiceApplyHeader, Long organizationId);
 
     /**
      * Save and update invoice header by import
      *
-     * @param invoiceApplyHeaders Invoice apply header
+     * @param invoiceApplyHeaders Invoice Apply Header
      * @param organizationId      Tenant id
      */
-    void saveDataByImport(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders, Long organizationId);
+    void saveDataByImport(List<InvoiceApplyHeader> invoiceApplyHeaders, Long organizationId);
 
     /**
      * Invoice Scheduling Task

@@ -1,7 +1,7 @@
 package com.hand.demo.app.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
+import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.infra.constant.Constants;
 import com.hand.demo.infra.constant.ImportConst;
 import io.choerodon.core.exception.CommonException;
@@ -34,9 +34,9 @@ public class InvoiceHeaderImportService extends BatchImportHandler {
     @Override
     public Boolean doImport(List<String> data) {
         try {
-            List<InvoiceApplyHeaderDTO> invoiceApplyHeaderList = new ArrayList<>();
+            List<InvoiceApplyHeader> invoiceApplyHeaderList = new ArrayList<>();
             for (String header : data) {
-                InvoiceApplyHeaderDTO invoiceApplyHeader = objectMapper.readValue(header, InvoiceApplyHeaderDTO.class);
+                InvoiceApplyHeader invoiceApplyHeader = objectMapper.readValue(header, InvoiceApplyHeader.class);
                 invoiceApplyHeader.setTenantId(Constants.ORGANIZATION_ID);
                 invoiceApplyHeaderList.add(invoiceApplyHeader);
             }
