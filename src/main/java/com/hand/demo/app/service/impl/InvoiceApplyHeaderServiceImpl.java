@@ -10,6 +10,8 @@ import com.hand.demo.infra.mapper.InvoiceApplyHeaderMapper;
 import com.hand.demo.infra.mapper.InvoiceApplyLineMapper;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.exception.CommonException;
+import io.choerodon.core.oauth.CustomUserDetails;
+import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
@@ -18,6 +20,7 @@ import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.core.redis.RedisHelper;
 import org.hzero.core.redis.RedisQueueHelper;
+import org.hzero.mybatis.util.Sqls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,6 +104,10 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
             return null;
         }
         InvoiceApplyHeaderDTO headerDTO = invoiceApplyHeaders.get(0);
+        // Add user real name to the response
+        CustomUserDetails userDetails = DetailsHelper.getUserDetails();
+        headerDTO.setRequester(userDetails.getRealName());
+
         // Get the invoice lines into the invoice header detail
         List<InvoiceApplyLine> invoiceApplyLines = invoiceApplyLineMapper.selectLinesByHeaderId(applyHeaderId);
         headerDTO.setInvoiceApplyLineList(invoiceApplyLines);
@@ -166,12 +173,11 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
 
     @Override
     public void updateHeaderByInvoiceLines(List<InvoiceApplyLine> invoiceApplyLines) {
-        List<InvoiceApplyHeaderDTO> headerList = new ArrayList<>();
-        for (InvoiceApplyLine line : invoiceApplyLines) {
-            InvoiceApplyHeaderDTO header = headerRepository.selectByPrimaryKey(line.getApplyHeaderId());
-            headerList.add(header);
-        }
-        updateInvoiceHeader(headerList);
+        // Fetch corresponding Invoice Headers and relevant Invoice Lines
+        Set<String> headerIds = invoiceApplyLines.stream().map(header -> header.getApplyHeaderId().toString())
+                                                   .collect(Collectors.toSet());
+        List<InvoiceApplyHeaderDTO> fetchedInvHeaders = headerRepository.selectByIds(String.join(",", headerIds));
+        updateInvoiceHeader(fetchedInvHeaders);
     }
 
     /**
@@ -241,7 +247,13 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
             // Check if Invoice Header ID exist in the database
             List<Long> updateIds =
                     updateList.stream().map(InvoiceApplyHeader::getApplyHeaderId).collect(Collectors.toList());
+            // TODO: This actually not necessary. No need to create new repository/mapper to query data
             List<Long> existingIds = headerRepository.findExistingIds(updateIds);
+//            Sqls.custom().andIn()
+            //            headerRepository.selectByCondition();
+            //            headerRepository.updateOptional();
+
+
             for (Long id : updateIds) {
                 if (!existingIds.contains(id)) {
                     throw new CommonException(ErrorCodeConst.INVOICE_NOT_EXIST, id);
@@ -301,20 +313,17 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     }
 
     public List<InvoiceApplyHeaderDTO> invoiceHeaderCalculation(List<InvoiceApplyHeaderDTO> invoiceApplyHeaders) {
-
-
         // Fetch corresponding Invoice Headers and relevant Invoice Lines
         Set<String> headerIds = invoiceApplyHeaders.stream().map(header -> header.getApplyHeaderId().toString())
                                                    .collect(Collectors.toSet());
         List<InvoiceApplyHeaderDTO> fetchedInvHeaders = headerRepository.selectByIds(String.join(",", headerIds));
         List<InvoiceApplyLine> invoiceApplyLines = lineRepository.selectAll();
         // TODO: Create selectByHeaderIds method to change selectAll
-        // List<InvoiceApplyLine> invoiceApplyLines = lineService.selectByHeaderIds(headerIds);
+//         List<InvoiceApplyLine> invoiceApplyLines = lineService.selectByHeaderIds(headerIds);
 
         // Group Invoice Lines by Header ID for faster lookups
         Map<String, List<InvoiceApplyLine>> linesGroupedByHeader =
                 invoiceApplyLines.stream().collect(Collectors.groupingBy(line -> line.getApplyHeaderId().toString()));
-
 
         // Calculate the total amount, total exclude tax, and total tax
         for (InvoiceApplyHeaderDTO invHeader : fetchedInvHeaders) {

@@ -34,4 +34,7 @@ public class InvoiceApplyHeaderDTO extends InvoiceApplyHeader {
     @ExcelColumn(promptCode = "children", promptKey = "children", child = true, order = 20)
     @Transient
     private List<InvoiceApplyLine> invoiceApplyLineList;
+
+    @Transient
+    private String requester;
 }
