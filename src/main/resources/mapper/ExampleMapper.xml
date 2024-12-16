@@ -14,7 +14,7 @@
     <select id="selectListUploadConfig" resultType="com.hand.demo.api.dto.HfleUploadConfigDTO">
         select
         <include refid="BaseSql"/>
-        from hzero_file.hfle_upload_config huc
+        from hfle_upload_config huc
         <where>
             <if test="bucketName != null">
                 and huc.bucket_name = #{bucketName, jdbcType=VARCHAR}
