@@ -1,5 +1,6 @@
 package com.hand.demo.app.service;
 
+import com.hand.demo.api.dto.InvoiceHeaderReportDTO;
 import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import com.hand.demo.domain.entity.InvoiceApplyLine;
 import io.choerodon.core.domain.Page;
@@ -23,18 +24,14 @@ public interface InvoiceApplyHeaderService {
      * @param invoiceApplyHeaders 查询条件
      * @return 返回值
      */
-    Page<InvoiceApplyHeader> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeaders);
+    Page<InvoiceApplyHeaderDTO> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeaders);
 
     /**
      * 查询数据
      *
-     * @param pageRequest         分页参数
-     * @param invoiceApplyHeaders 查询条件
-     * @param organizationId      Tenant id
      * @return InvoiceApplyHeaderDTO Page
      */
-    Page<InvoiceApplyHeaderDTO> selectListWithMeaning(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeaders,
-                                                      Long organizationId);
+    InvoiceHeaderReportDTO selectListReport(InvoiceHeaderReportDTO headerRequestReportDTO, Long organizationId);
 
     /**
      * Select Invoice Header detail by Header ID

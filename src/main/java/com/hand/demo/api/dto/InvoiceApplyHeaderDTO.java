@@ -37,4 +37,7 @@ public class InvoiceApplyHeaderDTO extends InvoiceApplyHeader {
 
     @Transient
     private String requester;
+
+    @Transient
+    private String invoiceApplyLineNames;
 }

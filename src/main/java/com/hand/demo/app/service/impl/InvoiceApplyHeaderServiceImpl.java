@@ -1,7 +1,11 @@
 package com.hand.demo.app.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.hand.demo.api.dto.InvoiceHeaderReportDTO;
 import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import com.hand.demo.domain.entity.InvoiceApplyLine;
 import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
@@ -14,22 +18,27 @@ import io.choerodon.core.oauth.CustomUserDetails;
 import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
+import org.hzero.boot.apaas.common.userinfo.infra.feign.IamRemoteService;
+import org.hzero.boot.interfaces.sdk.dto.UserVO;
 import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.core.redis.RedisHelper;
 import org.hzero.core.redis.RedisQueueHelper;
-import org.hzero.mybatis.util.Sqls;
+import org.hzero.mybatis.domian.Condition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvoiceApplyHeaderService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +61,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     private final CodeRuleBuilder codeRuleBuilder;
     private final RedisHelper redisHelper;
     private final RedisQueueHelper redisQueueHelper;
+    private final IamRemoteService iamRemoteService;
 
     private static final Logger logger = LoggerFactory.getLogger(InvoiceApplyHeaderServiceImpl.class);
 
@@ -61,7 +71,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
                                          InvoiceApplyLineRepository lineRepository,
                                          InvoiceApplyLineMapper invoiceApplyLineMapper, LovAdapter lovAdapter,
                                          CodeRuleBuilder codeRuleBuilder, RedisHelper redisHelper,
-                                         RedisQueueHelper redisQueueHelper) {
+                                         RedisQueueHelper redisQueueHelper, IamRemoteService iamRemoteService) {
         this.headerRepository = headerRepository;
         this.invoiceApplyHeaderMapper = invoiceApplyHeaderMapper;
         this.lineRepository = lineRepository;
@@ -70,11 +80,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         this.codeRuleBuilder = codeRuleBuilder;
         this.redisHelper = redisHelper;
         this.redisQueueHelper = redisQueueHelper;
-    }
-
-    @Override
-    public Page<InvoiceApplyHeader> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeader) {
-        return PageHelper.doPageAndSort(pageRequest, () -> headerRepository.selectList(invoiceApplyHeader));
+        this.iamRemoteService = iamRemoteService;
     }
 
     /**
@@ -83,10 +89,82 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
      * Fuzzy search implemented in the XML mapper
      */
     @Override
-    public Page<InvoiceApplyHeaderDTO> selectListWithMeaning(PageRequest pageRequest,
-                                                             InvoiceApplyHeader invoiceApplyHeader,
-                                                             Long organizationId) {
+    public Page<InvoiceApplyHeaderDTO> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeader) {
         return PageHelper.doPageAndSort(pageRequest, () -> headerRepository.selectList(invoiceApplyHeader));
+    }
+
+    @Override
+    @ProcessLovValue
+    public InvoiceHeaderReportDTO selectListReport(InvoiceHeaderReportDTO reportDTO, Long organizationId) {
+        Condition condition = new Condition(InvoiceApplyHeader.class);
+        // Filter for Invoice Apply Number range
+        if (reportDTO.getInvoiceApplyNumberFrom() != null && reportDTO.getInvoiceApplyNumberTo() != null) {
+            condition.and()
+                     .andBetween(InvoiceApplyHeader.FIELD_APPLY_HEADER_NUMBER, reportDTO.getInvoiceApplyNumberFrom(),
+                             reportDTO.getInvoiceApplyNumberTo());
+        }
+        // Filter for Submit Time range
+        if (reportDTO.getSubmitTimeFrom() != null && reportDTO.getSubmitTimeTo() != null) {
+            condition.and().andBetween(InvoiceApplyHeader.FIELD_SUBMIT_TIME, reportDTO.getSubmitTimeFrom(),
+                    reportDTO.getSubmitTimeTo());
+        }
+        // Filter for Invoice Creation Date range
+        if (reportDTO.getInvoiceCreationDateFrom() != null && reportDTO.getInvoiceCreationDateTo() != null) {
+            condition.and().andBetween(InvoiceApplyHeader.FIELD_CREATION_DATE, reportDTO.getInvoiceCreationDateFrom(),
+                    reportDTO.getInvoiceCreationDateTo());
+        }
+        // Filter for Apply Status (multi)
+        if (reportDTO.getApplyStatusList() != null && !reportDTO.getApplyStatusList().isEmpty()) {
+            condition.and().andIn(InvoiceApplyHeader.FIELD_APPLY_STATUS, reportDTO.getApplyStatusList());
+        }
+        // Filter for Invoice Type (single)
+        if (reportDTO.getInvoiceType() != null) {
+            condition.and().andEqualTo(InvoiceApplyHeader.FIELD_INVOICE_TYPE, reportDTO.getInvoiceType());
+        }
+        // Set Invoice Headers
+        List<InvoiceApplyHeader> headers = headerRepository.selectByCondition(condition);
+        // TODO: Make it more efficient (don't use selectAll)
+        List<InvoiceApplyLine> invoiceApplyLines = lineRepository.selectAll();
+        List<InvoiceApplyHeaderDTO> dtoList = new ArrayList<>();
+        for (InvoiceApplyHeader header : headers) {
+            InvoiceApplyHeaderDTO dto = new InvoiceApplyHeaderDTO();
+            BeanUtils.copyProperties(header, dto);
+            List<String> linelist = new ArrayList<>();
+            for (InvoiceApplyLine line : invoiceApplyLines) {
+                if (line.getApplyHeaderId().equals(header.getApplyHeaderId())) {
+                    linelist.add(line.getInvoiceName());
+                }
+            }
+            dto.setInvoiceApplyLineNames(String.join(",", linelist));
+            dtoList.add(dto);
+        }
+        // TODO add meaning in the response
+        reportDTO.setInvoiceApplyHeaderList(dtoList);
+
+        // Set Tenant Name
+        ResponseEntity<String> stringResponse = iamRemoteService.selectSelf();
+        ObjectMapper objectMapper = new ObjectMapper();
+        // Fix object mapper error
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        // Set a custom date format that matches the API response
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        objectMapper.setDateFormat(dateFormat);
+        try {
+            logger.info(stringResponse.getBody());
+            UserVO userVO = objectMapper.readValue(stringResponse.getBody(), UserVO.class);
+            String tenantName = userVO.getTenantName();
+            if (tenantName.isEmpty()) {
+                throw new CommonException("Tenant name is missing in response");
+            }
+            reportDTO.setTenantName(userVO.getTenantName());
+        } catch (JsonProcessingException e) {
+            throw new CommonException("Failed to parse response body to UserVO", e);
+        } catch (Exception e) {
+            throw new CommonException("Unexpected error occurred", e);
+        }
+        return reportDTO;
     }
 
     /**
@@ -255,7 +333,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
             //            headerRepository.updateOptional();
             // Calculate total_amount, exclude_tax_amount, and tax_amount
             // TODO: Move calculation on only invoice line change
-//            List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceHeaderCalculation(updateList);
+            //            List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceHeaderCalculation(updateList);
             logger.info("Updating Invoice Headers: {}", updateList);
             headerRepository.batchUpdateByPrimaryKeySelective(updateList);
         }
@@ -288,8 +366,8 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
                 updatedHeader.add(header);
             }
             // TODO: Move calculation to line invoice
-//             Calculate total_amount, exclude_tax_amount, and tax_amount
-//            List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceHeaderCalculation(updatedHeader);
+            //             Calculate total_amount, exclude_tax_amount, and tax_amount
+            //            List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceHeaderCalculation(updatedHeader);
             // Update invoice header
             headerRepository.batchUpdateByPrimaryKeySelective(updatedHeader);
         }
@@ -298,6 +376,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     private void insertInvoiceHeader(List<InvoiceApplyHeader> insertList) {
         if (!insertList.isEmpty()) {
             // Set invoice header name from Code Rule Builder
+            // TODO: Make sure the reset is correct
             for (InvoiceApplyHeader invHeader : insertList) {
                 Map<String, String> codeBuilderMap = new HashMap<>();
                 String invoiceCode = codeRuleBuilder.generateCode(CodeRuleConst.INV_HEADER_NUMBER, codeBuilderMap);
@@ -311,8 +390,8 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
 
     public void invoiceHeaderCalculation(List<InvoiceApplyLine> applyLines) {
         // Fetch corresponding Invoice Headers and relevant Invoice Lines
-        Set<String> headerIds = applyLines.stream().map(header -> header.getApplyHeaderId().toString())
-                                                   .collect(Collectors.toSet());
+        Set<String> headerIds =
+                applyLines.stream().map(header -> header.getApplyHeaderId().toString()).collect(Collectors.toSet());
         List<InvoiceApplyHeader> fetchedInvHeaders = headerRepository.selectByIds(String.join(",", headerIds));
         List<InvoiceApplyLine> invoiceApplyLines = lineRepository.selectAll();
         // TODO: Create selectByHeaderIds method to change selectAll

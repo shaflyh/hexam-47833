@@ -1,5 +1,6 @@
 package com.hand.demo.api.controller.v1;
 
+import com.hand.demo.api.dto.InvoiceHeaderReportDTO;
 import com.hand.demo.api.dto.InvoiceApplyHeaderDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
@@ -51,27 +52,21 @@ public class InvoiceApplyHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     @GetMapping
-    public ResponseEntity<Page<InvoiceApplyHeader>> list(InvoiceApplyHeaderDTO invoiceApplyHeader,
-                                                         @PathVariable Long organizationId, @ApiIgnore
-                                                         @SortDefault(value = InvoiceApplyHeader.FIELD_APPLY_HEADER_ID,
-                                                                 direction = Sort.Direction.DESC)
-                                                         PageRequest pageRequest) {
-        Page<InvoiceApplyHeader> list = invoiceApplyHeaderService.selectList(pageRequest, invoiceApplyHeader);
+    public ResponseEntity<Page<InvoiceApplyHeaderDTO>> list(InvoiceApplyHeaderDTO invoiceApplyHeader,
+                                                            @PathVariable Long organizationId, @ApiIgnore @SortDefault(
+                    value = InvoiceApplyHeader.FIELD_APPLY_HEADER_ID, direction = Sort.Direction.DESC)
+                                                            PageRequest pageRequest) {
+        Page<InvoiceApplyHeaderDTO> list = invoiceApplyHeaderService.selectList(pageRequest, invoiceApplyHeader);
         return Results.success(list);
     }
 
-    @ApiOperation(value = "List with Meaning")
+    @ApiOperation(value = "List Report")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
-    @GetMapping("/meaning")
-    public ResponseEntity<Page<InvoiceApplyHeaderDTO>> listMeaning(InvoiceApplyHeaderDTO invoiceApplyHeader,
-                                                                   @PathVariable Long organizationId, @ApiIgnore
-                                                                   @SortDefault(
-                                                                           value = InvoiceApplyHeader.FIELD_APPLY_HEADER_ID,
-                                                                           direction = Sort.Direction.DESC)
-                                                                   PageRequest pageRequest) {
-        Page<InvoiceApplyHeaderDTO> list =
-                invoiceApplyHeaderService.selectListWithMeaning(pageRequest, invoiceApplyHeader, organizationId);
+    @GetMapping("/list-report")
+    public ResponseEntity<InvoiceHeaderReportDTO> listReport(InvoiceHeaderReportDTO invoiceApplyHeader,
+                                                               @PathVariable Long organizationId) {
+        InvoiceHeaderReportDTO list = invoiceApplyHeaderService.selectListReport(invoiceApplyHeader, organizationId);
         return Results.success(list);
     }
 
