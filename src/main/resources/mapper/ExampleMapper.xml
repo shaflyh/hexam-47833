@@ -1,5 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.hand.demo.infra.mapper.ExampleMapper">
+    <!-- Base SQL for selected columns -->
+    <sql id="BaseSql">
+        huc.bucket_name,
+        huc.directory,
+        huc.content_type,
+        huc.storage_unit,
+        huc.storage_size
+    </sql>
 
+    <!-- Select the query with optional filtering -->
+    <select id="selectListUploadConfig" resultType="com.hand.demo.api.dto.HfleUploadConfigDTO">
+        select
+        <include refid="BaseSql"/>
+        from hzero_file.hfle_upload_config huc
+        <where>
+            <if test="bucketName != null">
+                and huc.bucket_name = #{bucketName, jdbcType=VARCHAR}
+            </if>
+            <if test="directory != null">
+                and huc.directory = #{directory, jdbcType=VARCHAR}
+            </if>
+            <if test="contentType != null">
+                and huc.content_type = #{contentType, jdbcType=VARCHAR}
+            </if>
+            <if test="storageUnit != null">
+                and huc.storage_unit = #{storageUnit, jdbcType=VARCHAR}
+            </if>
+            <if test="storageSize != null">
+                and huc.storage_size = #{storageSize, jdbcType=INTEGER}
+            </if>
+        </where>
+    </select>
 </mapper>
