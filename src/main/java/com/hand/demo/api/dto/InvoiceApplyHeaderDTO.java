@@ -40,4 +40,6 @@ public class InvoiceApplyHeaderDTO extends InvoiceApplyHeader {
 
     @Transient
     private String invoiceApplyLineNames;
+
+    private boolean tenantAdminFlag;
 }

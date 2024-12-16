@@ -18,8 +18,8 @@ import io.choerodon.core.oauth.CustomUserDetails;
 import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
+import org.hzero.boot.apaas.common.userinfo.domain.UserVO;
 import org.hzero.boot.apaas.common.userinfo.infra.feign.IamRemoteService;
-import org.hzero.boot.interfaces.sdk.dto.UserVO;
 import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
@@ -89,7 +89,14 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
      * Fuzzy search implemented in the XML mapper
      */
     @Override
-    public Page<InvoiceApplyHeaderDTO> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeader) {
+    public Page<InvoiceApplyHeaderDTO> selectList(PageRequest pageRequest, InvoiceApplyHeaderDTO invoiceApplyHeader) {
+        // Check if user is admin
+        if (getUserVO().getTenantAdminFlag() == null) {
+            // Add filtering if user not admin
+            invoiceApplyHeader.setTenantAdminFlag(false);
+            invoiceApplyHeader.setTenantId(getUserVO().getTenantId());
+            invoiceApplyHeader.setCreatedBy(getUserVO().getId());
+        }
         return PageHelper.doPageAndSort(pageRequest, () -> headerRepository.selectList(invoiceApplyHeader));
     }
 
@@ -142,28 +149,11 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         reportDTO.setInvoiceApplyHeaderList(dtoList);
 
         // Set Tenant Name
-        ResponseEntity<String> stringResponse = iamRemoteService.selectSelf();
-        ObjectMapper objectMapper = new ObjectMapper();
-        // Fix object mapper error
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        // Set a custom date format that matches the API response
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        objectMapper.setDateFormat(dateFormat);
-        try {
-            logger.info(stringResponse.getBody());
-            UserVO userVO = objectMapper.readValue(stringResponse.getBody(), UserVO.class);
-            String tenantName = userVO.getTenantName();
-            if (tenantName.isEmpty()) {
-                throw new CommonException("Tenant name is missing in response");
-            }
-            reportDTO.setTenantName(userVO.getTenantName());
-        } catch (JsonProcessingException e) {
-            throw new CommonException("Failed to parse response body to UserVO", e);
-        } catch (Exception e) {
-            throw new CommonException("Unexpected error occurred", e);
+        String tenantName = getUserVO().getTenantName();
+        if (tenantName.isEmpty()) {
+            throw new CommonException("Tenant name is missing in response");
         }
+        reportDTO.setTenantName(tenantName);
         return reportDTO;
     }
 
@@ -436,6 +426,28 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         } catch (Exception e) {
             throw new CommonException("Redis operation failed: " + e.getMessage(), e);
         }
+    }
+
+    private UserVO getUserVO() {
+        ResponseEntity<String> stringResponse = iamRemoteService.selectSelf();
+        ObjectMapper objectMapper = new ObjectMapper();
+        // Fix object mapper error
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        // Set a custom date format that matches the API response
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        objectMapper.setDateFormat(dateFormat);
+        UserVO userVO;
+        try {
+            logger.info(stringResponse.getBody());
+            userVO = objectMapper.readValue(stringResponse.getBody(), UserVO.class);
+        } catch (JsonProcessingException e) {
+            throw new CommonException("Failed to parse response body to UserVO", e);
+        } catch (Exception e) {
+            throw new CommonException("Unexpected error occurred", e);
+        }
+        return userVO;
     }
 }
 

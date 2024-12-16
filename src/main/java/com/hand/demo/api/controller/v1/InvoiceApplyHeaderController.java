@@ -65,7 +65,7 @@ public class InvoiceApplyHeaderController extends BaseController {
     @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     @GetMapping("/list-report")
     public ResponseEntity<InvoiceHeaderReportDTO> listReport(InvoiceHeaderReportDTO invoiceApplyHeader,
-                                                               @PathVariable Long organizationId) {
+                                                             @PathVariable Long organizationId) {
         InvoiceHeaderReportDTO list = invoiceApplyHeaderService.selectListReport(invoiceApplyHeader, organizationId);
         return Results.success(list);
     }

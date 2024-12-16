@@ -24,7 +24,7 @@ public interface InvoiceApplyHeaderService {
      * @param invoiceApplyHeaders 查询条件
      * @return 返回值
      */
-    Page<InvoiceApplyHeaderDTO> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeaders);
+    Page<InvoiceApplyHeaderDTO> selectList(PageRequest pageRequest, InvoiceApplyHeaderDTO invoiceApplyHeaders);
 
     /**
      * 查询数据
